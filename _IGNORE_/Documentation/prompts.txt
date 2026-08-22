@@ -8,6 +8,15 @@ AI Response:
 Output: Lib.html
 NOTE: Gemini went well above and beyond what I was initially thinking. However, the response was what inspired me to keep going well beyond my original intent.
 My prompt was way oversimplified, but I just wanted something simple and didn't think that I was being a bit too simple in my request.
+NOTE2: It appears that Gemini chose Tailwind for the CSS.
+
+Prompt 2:
+    - My Thinking: The cards were too tall. Plus, there was duplication in the book title between the top and bottom parts of the card.
+    - Prompt: "Make book cards more compact (shorter rows) and avoid duplicating Title and Author."
+AI Response:
+    - Streamlined metadata layout to declare values exactly once. Compressed card margins and introduced a Layout Switcher (Grid vs. List) to maximize space.
+Output: Lib2.html
+NOTE: Gemini is keeping Tailwind CSS, but it seems to have added Lucide for some of the icon graphics.
 
 
 
