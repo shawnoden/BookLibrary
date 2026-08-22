@@ -18,5 +18,11 @@ AI Response:
 Output: Lib2.html
 NOTE: Gemini is keeping Tailwind CSS, but it seems to have added Lucide for some of the icon graphics.
 
+Prompt 3:
+    - My Thinking: I didn't like the fonts in Version 2. I wanted to roll back to Version 1, but keep everything else. I also wanted to be able to see books that were in a Series.
+    - Prompt: "Blend the visual style of version 1 with the compact card height of version 2. Keep the version 2 header. Add a way to group and sort books by Series."
+AI Response:
+    - Engineered a hybrid compact card layout. Programmed a client-side clustering engine (groupBySeries) that groups books into series and automatically sorts volumes chronologically by parsing volume numbers.
+Output: Lib3.html
 
 
