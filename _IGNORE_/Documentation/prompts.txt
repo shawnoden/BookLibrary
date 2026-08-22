@@ -47,6 +47,20 @@ NOTE: I'm not sure what happened with this update, but it didn't seem to change 
 NOTE 2: Correction. It seems I missed a note somewhere. It created Lib6.html to deal with the requests.
 
 
+Prompt 6:
+    - My Thinking:
+    - Prompt: "Revert to Cover-style cards (gradient/image) but use lighter/white text and lighter icons. Shrunk card height by 15%. Support local covers from a backgroundImage entry in the JSON."
+    - My actions:
+        - Create backgroundImage folder.
+        - Added single image for testing. DungeonCrawlerCarlBook1.png.
+        - Modified JSON file to include properties for the Image.
+AI Response:
+    - Re-proportioned card headers to a distinct h-20 layout (height 150px). Coded dynamic CSS background resolution pointing to a localized cover image directory. Ensured readability using subtle overlay drop-shadows.
+Output: Lib7.html
+NOTE: Gemini also modified the modal for the card to include the new background image, even though I didn't ask for that.
+
+
+
 
 
 
