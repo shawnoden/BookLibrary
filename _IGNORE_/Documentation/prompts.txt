@@ -46,7 +46,6 @@ Output: Lib5.html | Lib6.html
 NOTE: I'm not sure what happened with this update, but it didn't seem to change much, other than removing the series name in the top of the card. I don't think it did what it said about the JSON upload.
 NOTE 2: Correction. It seems I missed a note somewhere. It created Lib6.html to deal with the requests.
 
-
 Prompt 6:
     - My Thinking:
     - Prompt: "Revert to Cover-style cards (gradient/image) but use lighter/white text and lighter icons. Shrunk card height by 15%. Support local covers from a backgroundImage entry in the JSON."
