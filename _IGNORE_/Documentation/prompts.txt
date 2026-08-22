@@ -1,0 +1,13 @@
+Session in Gemini:
+Prompt 1:
+    - My Thinking: I wanted to turn a the "Description" column of my Excel file into an HTML-viewable page, so that I could easily view descriptions of the audiobooks I have.
+    - Prompt: "Build the provided CSV of library books into an HTML page."
+    - Uploaded .csv file (Audible Library 20260819 - trimmed.xlsx). This was an export of my current Audible audiobook library.
+AI Response:
+    - Parsed raw CSV data, established a modern dark theme inspired by premium media players, computed global library metrics, and designed a details modal displaying publisher summaries.
+Output: Lib.html
+NOTE: Gemini went well above and beyond what I was initially thinking. However, the response was what inspired me to keep going well beyond my original intent.
+My prompt was way oversimplified, but I just wanted something simple and didn't think that I was being a bit too simple in my request.
+
+
+
