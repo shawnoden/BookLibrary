@@ -25,4 +25,19 @@ AI Response:
     - Engineered a hybrid compact card layout. Programmed a client-side clustering engine (groupBySeries) that groups books into series and automatically sorts volumes chronologically by parsing volume numbers.
 Output: Lib3.html
 
+Prompt 4:
+    - My Thinking: I wanted to use an external .json file to store the details of the audiobooks. I didn't like having them hard-coded in the html.
+    - Prompt: "Decouple the hardcoded data to load from an external library.json file to save token space."
+    - My actions:
+        - I copied the JSON block from the HTML file, pasted it into a new file library.json. I had to edit some of the fields because Gemini coded some Javascript functions for some of the series that were repetitive. I also had to fix some of the descriptions that were truncated.
+AI Response:
+    - Replaced the inline array with an asynchronous API fetch for library.json. Programmed a local CORS-safe fallback (drag-and-drop selector) to allow offline local file loading.
+Output: Lib4.html
+NOTE: To this point, Gemini has been fairly impressive with what it is creating. The page went well above and beyond what I originally asked for, and every iteration seems to have been a slight improvement on older code. It has made a few font changes that I didn't ask for, but I also didn't tell it not to. It chose to add a fallback to upload the .json file if it doesn't exist, and it added in the error checking. It also realized that there may be CORS issues, and checked for them.
+
+
+
+
+
+
 
