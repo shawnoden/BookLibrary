@@ -59,6 +59,14 @@ AI Response:
 Output: Lib7.html
 NOTE: Gemini also modified the modal for the card to include the new background image, even though I didn't ask for that.
 
+Prompt 7:
+    - My Thinking: I wanted to make sure that background images were only found in one place.
+    - Prompt: "Path for backgroundImage will be inside a subfolder named backgroundImage/."
+AI Response:
+    - Implemented path building inside the JS engine so any simple filename defined in the JSON's "backgroundImage" gracefully resolves to backgroundImage/filename.png at runtime.
+Output: Lib8.html
+NOTE: Gemini keeps adding comments to pieces of the code that could use comments. Nice help. It also assumed that if I wanted a background image on the main card, I'd also want it on the modal card.
+
 
 
 
