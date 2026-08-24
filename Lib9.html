@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Audible Library Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons for clean vector glyphs -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            500: '#f59e0b', // Audible Orange
+                            600: '#d97706',
+                            900: '#78350f',
+                        },
+                        darkbg: '#0b0f19',
+                        darkcard: '#1e293b'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+        }
+        /* Custom scrollbar for modern feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;  
+            overflow: hidden;
+        }
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;  
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen pb-12">
+
+    <!-- Header & Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-brand-500 text-slate-950 p-2 rounded-lg font-bold flex items-center justify-center">
+                    <i data-lucide="headphones" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        Audible Archive <span class="text-xs bg-slate-800 text-brand-500 border border-brand-500/20 px-2 py-0.5 rounded-full">2026</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Interactive Collection Explorer</p>
+                </div>
+            </div>
+
+            <!-- Quick Global Stats Summary -->
+            <div class="flex items-center gap-6 text-sm text-slate-400">
+                <div class="text-center sm:text-right">
+                    <span class="text-xs uppercase tracking-wider text-slate-500 block">Total Listening</span>
+                    <span class="font-semibold text-slate-200" id="stat-total-time">0h</span>
+                </div>
+                <div class="h-8 w-px bg-slate-800"></div>
+                <div class="text-center sm:text-right">
+                    <span class="text-xs uppercase tracking-wider text-slate-500 block">Library Size</span>
+                    <span class="font-semibold text-slate-200" id="stat-book-count">0 books</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+
+        <!-- Loading State Indicator -->
+        <section id="loading-state" class="flex flex-col items-center justify-center py-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mb-4"></div>
+            <p class="text-sm text-slate-400">Searching for library data...</p>
+        </section>
+
+        <!-- No Configured Library State (Fallback if library.json fails to load) -->
+        <section id="error-state" class="hidden flex flex-col items-center justify-center py-24 text-center">
+            <div class="p-4 bg-red-500/10 rounded-full w-16 h-16 flex items-center justify-center mb-4">
+                <i data-lucide="alert-circle" class="w-8 h-8 text-red-500"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Configuration Error</h3>
+            <p class="text-sm text-slate-400">We're sorry, but there is no library configured.</p>
+        </section>
+
+        <!-- Main Dashboard Content wrapper (Hidden until file is loaded) -->
+        <div id="dashboard-content" class="hidden">
+            <!-- Dashboard Stats Section -->
+            <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+                    <div class="p-3 bg-brand-500/10 rounded-lg text-brand-500">
+                        <i data-lucide="book-open" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Total Audiobooks</p>
+                        <p class="text-xl font-bold text-slate-100" id="card-count">0</p>
+                    </div>
+                </div>
+                <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+                    <div class="p-3 bg-emerald-500/10 rounded-lg text-emerald-500">
+                        <i data-lucide="clock" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Listening Time</p>
+                        <p class="text-xl font-bold text-slate-100" id="card-hours">0h</p>
+                    </div>
+                </div>
+                <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+                    <div class="p-3 bg-amber-500/10 rounded-lg text-amber-500">
+                        <i data-lucide="star" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Average Rating</p>
+                        <p class="text-xl font-bold text-slate-100" id="card-rating">0.0</p>
+                    </div>
+                </div>
+                <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+                    <div class="p-3 bg-purple-500/10 rounded-lg text-purple-500">
+                        <i data-lucide="award" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Longest Listen</p>
+                        <p class="text-sm font-bold text-slate-100 truncate w-32 md:w-40" id="card-longest">None</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Search, Filter & Layout Control Area -->
+            <section class="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-6 shadow-xl">
+                <div class="flex flex-col gap-4">
+                    <!-- Search and Sorting Controls -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
+                        <!-- Search Input -->
+                        <div class="relative lg:col-span-3">
+                            <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                            <input type="text" id="search-input" placeholder="Search title, author, narrator, series..." 
+                                   class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 pl-10 pr-4 text-xs focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-slate-100 placeholder-slate-500 transition-all">
+                        </div>
+
+                        <!-- Sorters & Series Grouping -->
+                        <div class="grid grid-cols-2 sm:flex items-center gap-2.5 lg:col-span-7">
+                            <div class="flex items-center gap-1.5 w-full sm:w-auto">
+                                <span class="text-[10px] text-slate-500 uppercase tracking-wider hidden sm:inline whitespace-nowrap">Sort:</span>
+                                <select id="sort-select" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-brand-500">
+                                    <option value="rating">Highest Rating</option>
+                                    <option value="length_desc">Duration (Longest First)</option>
+                                    <option value="length_asc">Duration (Shortest First)</option>
+                                    <option value="title">Title (A-Z)</option>
+                                    <option value="published">Date Published</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-1.5 w-full sm:w-auto">
+                                <span class="text-[10px] text-slate-500 uppercase tracking-wider hidden sm:inline whitespace-nowrap">Genre:</span>
+                                <select id="category-filter" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-brand-500">
+                                    <option value="all">All Categories</option>
+                                </select>
+                            </div>
+                            <!-- Narrator Filter Dropdown -->
+                            <div class="flex items-center gap-1.5 w-full sm:w-auto">
+                                <span class="text-[10px] text-slate-500 uppercase tracking-wider hidden sm:inline whitespace-nowrap">Narrator:</span>
+                                <select id="narrator-filter" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-brand-500">
+                                    <option value="all">All Narrators</option>
+                                </select>
+                            </div>
+                            <!-- Series Group Switch -->
+                            <button id="group-series-btn" title="Group books in a Series together" class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200 w-full sm:w-auto shrink-0">
+                                <i data-lucide="layers" class="w-4 h-4"></i>
+                                <span>Group Series</span>
+                            </button>
+                        </div>
+
+                        <!-- Layout Selector -->
+                        <div class="lg:col-span-2 flex justify-end gap-1.5 border-t border-slate-800 lg:border-t-0 pt-3 lg:pt-0">
+                            <button id="view-grid" title="Compact Covers Grid" class="flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-500/30 bg-brand-500/10 text-brand-500 text-xs transition-all">
+                                <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                                <span class="lg:hidden">Grid</span>
+                            </button>
+                            <button id="view-list" title="Detailed List Table" class="flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200">
+                                <i data-lucide="list" class="w-4 h-4"></i>
+                                <span class="lg:hidden">List</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Active Filter Badges Area -->
+                    <div id="active-filters-container" class="hidden flex flex-wrap gap-2 items-center text-xs">
+                        <span class="text-slate-500">Active Filters:</span>
+                        <div id="filter-badges" class="flex flex-wrap gap-1.5"></div>
+                        <button id="clear-filters-btn" class="text-brand-500 hover:underline hover:text-brand-600 ml-1">Clear all</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Books Area -->
+            <section id="library-container">
+                <!-- Dynamic Grid or List will be generated here -->
+                <div id="books-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
+
+                <div id="books-list" class="hidden overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-900/90 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
+                                <th class="p-3">Title & Series</th>
+                                <th class="p-3">Author</th>
+                                <th class="p-3">Narrator</th>
+                                <th class="p-3 text-center">Length</th>
+                                <th class="p-3 text-center">Rating</th>
+                                <th class="p-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="books-list-body" class="divide-y divide-slate-800"></tbody>
+                    </table>
+                </div>
+
+                <!-- Empty Search State -->
+                <div id="empty-state" class="hidden text-center py-16 bg-slate-900/20 rounded-xl border border-slate-800 border-dashed">
+                    <i data-lucide="book-x" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
+                    <h3 class="text-lg font-semibold text-slate-300">No books found</h3>
+                    <p class="text-sm text-slate-500 mt-1">Try resetting your search filters or choosing another category.</p>
+                    <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg transition-all">Reset All Filters</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Unified Cinematic Book Detail Drawer / Modal -->
+    <div id="detail-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl transition-all scale-95 duration-300 transform" id="modal-card">
+            <!-- Top Color Bar -->
+            <div id="modal-gradient-bar" class="h-3 w-full bg-gradient-to-r from-brand-500 to-amber-600"></div>
+
+            <div class="p-6 relative">
+                <button onclick="closeModal()" class="absolute top-4 right-4 p-1 rounded-full bg-slate-950/40 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+
+                <!-- Core Details Grid -->
+                <div class="flex flex-col md:flex-row gap-5">
+                    <!-- Dynamic Cover Visualizer -->
+                    <div id="modal-cover-art" class="w-32 h-32 md:w-40 md:h-40 rounded-xl flex flex-col justify-between p-3.5 shrink-0 shadow-lg text-slate-950">
+                        <i data-lucide="book" class="w-7 h-7 opacity-60"></i>
+                        <span class="font-bold text-xs uppercase tracking-wider block text-right" id="modal-cover-cat">SCI-FI</span>
+                    </div>
+
+                    <!-- Book Metadata -->
+                    <div class="flex-1">
+                        <span id="modal-series-badge" class="inline-block text-[10px] bg-brand-500/10 border border-brand-500/20 text-brand-500 font-semibold px-2 py-0.5 rounded-md mb-1.5"></span>
+                        <h2 id="modal-title" class="text-xl font-bold text-white tracking-tight"></h2>
+                        <p id="modal-subtitle" class="text-xs text-slate-400 mt-0.5 mb-2.5 italic"></p>
+
+                        <div class="space-y-1.5 text-xs text-slate-300 border-t border-slate-800/80 pt-2.5">
+                            <p><span class="text-slate-500">Author:</span> <strong id="modal-author" class="text-slate-100"></strong></p>
+                            <p><span class="text-slate-500">Narrator:</span> <span id="modal-narrator"></span></p>
+                            <p><span class="text-slate-500">Publisher:</span> <span id="modal-publisher" class="text-slate-400"></span></p>
+                            <p><span class="text-slate-500">Published:</span> <span id="modal-published-date" class="text-slate-400"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Breakdown Cards -->
+                <div class="grid grid-cols-3 gap-3 my-5 border-t border-b border-slate-800 py-3.5">
+                    <div class="text-center">
+                        <span class="text-[10px] text-slate-500 uppercase block tracking-wider mb-1">Duration</span>
+                        <div class="inline-flex items-center gap-1 text-slate-200">
+                            <i data-lucide="hourglass" class="w-3.5 h-3.5 text-emerald-500"></i>
+                            <span class="text-xs font-semibold" id="modal-duration">--</span>
+                        </div>
+                    </div>
+                    <div class="text-center border-l border-r border-slate-800">
+                        <span class="text-[10px] text-slate-500 uppercase block tracking-wider mb-1">Story Rating</span>
+                        <div class="inline-flex items-center gap-1 text-slate-200">
+                            <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-500 text-amber-500"></i>
+                            <span class="text-xs font-semibold" id="modal-rating-story">--</span>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <span class="text-[10px] text-slate-500 uppercase block tracking-wider mb-1">Performance</span>
+                        <div class="inline-flex items-center gap-1 text-slate-200">
+                            <i data-lucide="mic" class="w-3.5 h-3.5 text-purple-500"></i>
+                            <span class="text-xs font-semibold" id="modal-rating-perf">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Publisher Description Content -->
+                <div>
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Publisher Description</h3>
+                    <div id="modal-description" class="text-xs text-slate-300 leading-relaxed max-h-48 overflow-y-auto bg-slate-950 p-3 rounded-lg border border-slate-800/60 pr-2">
+                        <!-- Raw HTML injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Injection & Application Scripts -->
+    <script>
+        // Main dataset loaded dynamically
+        let libraryData = [];
+
+        // State variables
+        let currentLayout = 'grid'; // grid | list
+        let activeCategory = 'all';
+        let activeNarrator = 'all'; // Narrator filter state
+        let searchQuery = '';
+        let currentSort = 'rating';
+        let groupBySeries = false;
+
+        // Styling palettes matching category genres dynamically
+        const categoryGradients = {
+            "Adventure": "from-amber-600 to-yellow-500",
+            "Science Fiction": "from-cyan-600 to-blue-600",
+            "Hard Science Fiction": "from-sky-700 to-indigo-800",
+            "Post-Apocalyptic": "from-red-900 to-stone-700",
+            "Dystopian": "from-zinc-800 to-orange-950",
+            "Fantasy": "from-purple-800 to-violet-600",
+            "Space Opera": "from-slate-900 via-indigo-950 to-slate-900",
+            "Default": "from-brand-600 to-amber-600"
+        };
+
+        const categoryIcons = {
+            "Adventure": "compass",
+            "Science Fiction": "rocket",
+            "Hard Science Fiction": "orbit",
+            "Post-Apocalyptic": "skull",
+            "Dystopian": "shield-alert",
+            "Fantasy": "wand-2",
+            "Space Opera": "sparkles",
+            "Default": "book"
+        };
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            attemptAutoFetch();
+
+            // Controls Event Listeners
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase().trim();
+                render();
+            });
+
+            document.getElementById('sort-select').addEventListener('change', (e) => {
+                currentSort = e.target.value;
+                render();
+            });
+
+            document.getElementById('category-filter').addEventListener('change', (e) => {
+                activeCategory = e.target.value;
+                updateFilterBadges();
+                render();
+            });
+
+            document.getElementById('narrator-filter').addEventListener('change', (e) => {
+                activeNarrator = e.target.value;
+                updateFilterBadges();
+                render();
+            });
+
+            document.getElementById('view-grid').addEventListener('click', () => {
+                setLayout('grid');
+            });
+
+            document.getElementById('view-list').addEventListener('click', () => {
+                setLayout('list');
+            });
+
+            // Series Group Toggle Action
+            const groupBtn = document.getElementById('group-series-btn');
+            groupBtn.addEventListener('click', () => {
+                groupBySeries = !groupBySeries;
+                if (groupBySeries) {
+                    groupBtn.className = "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-brand-500/30 bg-brand-500/10 text-brand-500 text-xs transition-all w-full sm:w-auto shrink-0";
+                } else {
+                    groupBtn.className = "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200 w-full sm:w-auto shrink-0";
+                }
+                render();
+            });
+
+            document.getElementById('clear-filters-btn').addEventListener('click', resetFilters);
+        });
+
+        // Try to load library.json directly
+        async function attemptAutoFetch() {
+            const loadingState = document.getElementById('loading-state');
+            const errorState = document.getElementById('error-state');
+            try {
+                const response = await fetch('library.json');
+                if (!response.ok) throw new Error("Could not fetch library.json");
+                const data = await response.json();
+
+                loadingState.classList.add('hidden');
+                initLibrary(data);
+            } catch (err) {
+                console.error("Failed to fetch library config dynamically.", err);
+                loadingState.classList.add('hidden');
+                errorState.classList.remove('hidden');
+            }
+        }
+
+        // Initialize loaded library data
+        function initLibrary(data) {
+            libraryData = data;
+
+            // Show main layout
+            document.getElementById('dashboard-content').classList.remove('hidden');
+
+            initStats();
+            initCategoryFilters();
+            initNarratorFilters();
+            render();
+        }
+
+        // Build standard statistics summaries
+        function initStats() {
+            // Count
+            document.getElementById('stat-book-count').textContent = `${libraryData.length} audiobooks`;
+            document.getElementById('card-count').textContent = libraryData.length;
+
+            // Total Listening Time in Minutes
+            const totalMinutes = libraryData.reduce((acc, curr) => acc + (curr.length || 0), 0);
+            const d = Math.floor(totalMinutes / (24 * 60));
+            const h = Math.floor((totalMinutes % (24 * 60)) / 60);
+            const m = totalMinutes % 60;
+
+            const listensString = `${d}d ${h}h ${m}m`;
+            document.getElementById('stat-total-time').textContent = listensString;
+            document.getElementById('card-hours').textContent = `${Math.round(totalMinutes / 60)} hrs`;
+
+            // Average Overall Rating
+            const booksWithRatings = libraryData.filter(b => (b.ratingOverall || 0) > 0);
+            const averageRating = booksWithRatings.length > 0 
+                ? booksWithRatings.reduce((acc, curr) => acc + curr.ratingOverall, 0) / booksWithRatings.length 
+                : 0;
+            document.getElementById('card-rating').textContent = averageRating.toFixed(2);
+
+            // Longest Book
+            if (libraryData.length > 0) {
+                const longestBook = libraryData.reduce((prev, current) => ((prev.length || 0) > (current.length || 0)) ? prev : current);
+                document.getElementById('card-longest').textContent = `${longestBook.title} (${Math.round((longestBook.length || 0)/60)}h)`;
+            } else {
+                document.getElementById('card-longest').textContent = "None";
+            }
+        }
+
+        function initCategoryFilters() {
+            const categoriesSet = new Set();
+            libraryData.forEach(book => {
+                if (book.categories) {
+                    book.categories.split(';').forEach(cat => categoriesSet.add(cat.trim()));
+                }
+            });
+
+            const sortedCategories = Array.from(categoriesSet).sort();
+            const selectEl = document.getElementById('category-filter');
+
+            // Clear prior generated options if any
+            selectEl.innerHTML = '<option value="all">All Categories</option>';
+
+            sortedCategories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                selectEl.appendChild(opt);
+            });
+        }
+
+        function initNarratorFilters() {
+            const narratorsSet = new Set();
+            libraryData.forEach(book => {
+                if (book.narrators) {
+                    // Split in case of multiple narrators separated by commas
+                    book.narrators.split(',').forEach(narrator => narratorsSet.add(narrator.trim()));
+                }
+            });
+
+            const sortedNarrators = Array.from(narratorsSet).sort();
+            const selectEl = document.getElementById('narrator-filter');
+
+            selectEl.innerHTML = '<option value="all">All Narrators</option>';
+
+            sortedNarrators.forEach(narrator => {
+                const opt = document.createElement('option');
+                opt.value = narrator;
+                opt.textContent = narrator;
+                selectEl.appendChild(opt);
+            });
+        }
+
+        function getCategoryStyle(catString) {
+            if (!catString) return { gradient: categoryGradients.Default, icon: categoryIcons.Default };
+            const primaryCat = catString.split(';')[0].trim();
+            return {
+                gradient: categoryGradients[primaryCat] || categoryGradients.Default,
+                icon: categoryIcons[primaryCat] || categoryIcons.Default
+            };
+        }
+
+        function setLayout(layout) {
+            currentLayout = layout;
+
+            const gridBtn = document.getElementById('view-grid');
+            const listBtn = document.getElementById('view-list');
+
+            const gridContainer = document.getElementById('books-grid');
+            const listContainer = document.getElementById('books-list');
+
+            if (layout === 'grid') {
+                gridBtn.className = "flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-500/30 bg-brand-500/10 text-brand-500 text-xs transition-all";
+                listBtn.className = "flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200";
+
+                gridContainer.classList.remove('hidden');
+                listContainer.classList.add('hidden');
+            } else {
+                listBtn.className = "flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-500/30 bg-brand-500/10 text-brand-500 text-xs transition-all";
+                gridBtn.className = "flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200";
+
+                listContainer.classList.remove('hidden');
+                gridContainer.classList.add('hidden');
+            }
+            render();
+        }
+
+        // Synchronize and render active filters
+        function updateFilterBadges() {
+            const container = document.getElementById('active-filters-container');
+            const badgesDiv = document.getElementById('filter-badges');
+
+            badgesDiv.innerHTML = '';
+
+            if (activeCategory === 'all' && activeNarrator === 'all' && !searchQuery) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+
+            if (activeCategory !== 'all') {
+                badgesDiv.appendChild(createBadge(`Category: ${activeCategory}`, () => {
+                    activeCategory = 'all';
+                    document.getElementById('category-filter').value = 'all';
+                    updateFilterBadges();
+                    render();
+                }));
+            }
+
+            if (activeNarrator !== 'all') {
+                badgesDiv.appendChild(createBadge(`Narrator: ${activeNarrator}`, () => {
+                    activeNarrator = 'all';
+                    document.getElementById('narrator-filter').value = 'all';
+                    updateFilterBadges();
+                    render();
+                }));
+            }
+
+            if (searchQuery) {
+                badgesDiv.appendChild(createBadge(`Query: "${searchQuery}"`, () => {
+                    searchQuery = '';
+                    document.getElementById('search-input').value = '';
+                    updateFilterBadges();
+                    render();
+                }));
+            }
+        }
+
+        function createBadge(text, onRemove) {
+            const span = document.createElement('span');
+            span.className = "inline-flex items-center gap-1 bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-md text-[11px]";
+            span.innerHTML = `<span>${text}</span>`;
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = "text-slate-500 hover:text-red-400 ml-0.5 font-bold transition-colors";
+            closeBtn.innerHTML = "&times;";
+            closeBtn.onclick = onRemove;
+
+            span.appendChild(closeBtn);
+            return span;
+        }
+
+        // Resets current query filters
+        function resetFilters() {
+            searchQuery = '';
+            activeCategory = 'all';
+            activeNarrator = 'all';
+            currentSort = 'rating';
+            groupBySeries = false;
+
+            document.getElementById('search-input').value = '';
+            document.getElementById('category-filter').value = 'all';
+            document.getElementById('narrator-filter').value = 'all';
+            document.getElementById('sort-select').value = 'rating';
+
+            const groupBtn = document.getElementById('group-series-btn');
+            groupBtn.className = "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200 w-full sm:w-auto shrink-0";
+
+            updateFilterBadges();
+            render();
+        }
+
+        function getFilteredAndSortedData() {
+            // Filtering
+            let result = libraryData.filter(book => {
+                // Category Filter
+                let matchesCategory = true;
+                if (activeCategory !== 'all') {
+                    matchesCategory = book.categories && book.categories.split(';').map(c => c.trim()).includes(activeCategory);
+                }
+
+                // Narrator Filter
+                let matchesNarrator = true;
+                if (activeNarrator !== 'all') {
+                    matchesNarrator = book.narrators && book.narrators.split(',').map(n => n.trim()).includes(activeNarrator);
+                }
+
+                // Search Filter
+                let matchesSearch = true;
+                if (searchQuery) {
+                    matchesSearch = (
+                        book.title.toLowerCase().includes(searchQuery) ||
+                        (book.subtitle && book.subtitle.toLowerCase().includes(searchQuery)) ||
+                        book.authors.toLowerCase().includes(searchQuery) ||
+                        book.narrators.toLowerCase().includes(searchQuery) ||
+                        (book.series && book.series.toLowerCase().includes(searchQuery)) ||
+                        (book.publisher && book.publisher.toLowerCase().includes(searchQuery))
+                    );
+                }
+
+                return matchesCategory && matchesNarrator && matchesSearch;
+            });
+
+            // Sorting
+            result.sort((a, b) => {
+                if (currentSort === 'rating') {
+                    return (b.ratingOverall || 0) - (a.ratingOverall || 0);
+                } else if (currentSort === 'length_desc') {
+                    return (b.length || 0) - (a.length || 0);
+                } else if (currentSort === 'length_asc') {
+                    return (a.length || 0) - (b.length || 0);
+                } else if (currentSort === 'title') {
+                    return a.title.localeCompare(b.title);
+                } else if (currentSort === 'published') {
+                    return new Date(b.datePublished || 0) - new Date(a.datePublished || 0);
+                }
+                return 0;
+            });
+
+            return result;
+        }
+
+        // Helper to extract series volume number for numeric ordering
+        function getSeriesNumber(seriesOrder) {
+            if (!seriesOrder) return 999;
+            const match = seriesOrder.match(/\d+/);
+            return match ? parseInt(match[0], 10) : 999;
+        }
+
+        function render() {
+            const data = getFilteredAndSortedData();
+            const gridContainer = document.getElementById('books-grid');
+            const listBody = document.getElementById('books-list-body');
+            const emptyState = document.getElementById('empty-state');
+
+            // Hide/Show Empty State
+            if (data.length === 0) {
+                emptyState.classList.remove('hidden');
+                gridContainer.classList.add('hidden');
+                document.getElementById('books-list').classList.add('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+                if (currentLayout === 'grid') {
+                    gridContainer.classList.remove('hidden');
+                    document.getElementById('books-list').classList.add('hidden');
+                } else {
+                    document.getElementById('books-list').classList.remove('hidden');
+                    gridContainer.classList.add('hidden');
+                }
+            }
+
+            if (groupBySeries) {
+                renderGrouped(data, gridContainer, listBody);
+            } else {
+                renderFlat(data, gridContainer, listBody);
+            }
+
+            // Always update standard vector icons generated dynamically
+            lucide.createIcons();
+        }
+
+        function renderFlat(data, gridContainer, listBody) {
+            if (currentLayout === 'grid') {
+                gridContainer.innerHTML = '';
+                data.forEach(book => {
+                    gridContainer.appendChild(createCompactGridCard(book));
+                });
+            } else {
+                listBody.innerHTML = '';
+                data.forEach(book => {
+                    listBody.appendChild(createListRow(book));
+                });
+            }
+        }
+
+        function renderGrouped(data, gridContainer, listBody) {
+            // Group books by series name
+            const seriesGroups = {};
+            const standalones = [];
+
+            data.forEach(book => {
+                if (book.series && book.series.trim() !== '') {
+                    const sName = book.series.trim();
+                    if (!seriesGroups[sName]) {
+                        seriesGroups[sName] = [];
+                    }
+                    seriesGroups[sName].push(book);
+                } else {
+                    standalones.push(book);
+                }
+            });
+
+            // Sort books in each series group by their series Order chronological value
+            for (const sName in seriesGroups) {
+                seriesGroups[sName].sort((a, b) => {
+                    const aNum = getSeriesNumber(a.seriesOrder);
+                    const bNum = getSeriesNumber(b.seriesOrder);
+                    return aNum - bNum;
+                });
+            }
+
+            // Sort series alphabetically
+            const sortedSeriesNames = Object.keys(seriesGroups).sort((a, b) => a.localeCompare(b));
+
+            if (currentLayout === 'grid') {
+                gridContainer.innerHTML = '';
+
+                // Render groups in grid layout
+                sortedSeriesNames.forEach(sName => {
+                    const books = seriesGroups[sName];
+
+                    // Series Header Row spanning all columns natively
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = "col-span-full border-b border-slate-800 pb-1.5 mt-6 mb-2 flex justify-between items-end";
+                    headerDiv.innerHTML = `
+                        <h3 class="text-xs font-bold text-brand-500 flex items-center gap-1.5 tracking-wider uppercase">
+                            <i data-lucide="layers" class="w-4 h-4"></i>
+                            ${sName}
+                        </h3>
+                        <span class="text-[10px] text-slate-500 font-mono">${books.length} ${books.length === 1 ? 'Volume' : 'Volumes'}</span>
+                    `;
+                    gridContainer.appendChild(headerDiv);
+
+                    books.forEach(book => {
+                        gridContainer.appendChild(createCompactGridCard(book));
+                    });
+                });
+
+                // Standalones Section
+                if (standalones.length > 0) {
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = "col-span-full border-b border-slate-800 pb-1.5 mt-8 mb-2 flex justify-between items-end";
+                    headerDiv.innerHTML = `
+                        <h3 class="text-xs font-bold text-slate-400 flex items-center gap-1.5 tracking-wider uppercase">
+                            <i data-lucide="book" class="w-4 h-4"></i>
+                            Standalone Titles
+                        </h3>
+                        <span class="text-[10px] text-slate-500 font-mono">${standalones.length} ${standalones.length === 1 ? 'Book' : 'Books'}</span>
+                    `;
+                    gridContainer.appendChild(headerDiv);
+
+                    standalones.forEach(book => {
+                        gridContainer.appendChild(createCompactGridCard(book));
+                    });
+                }
+            } else {
+                // Grouped Table rendering
+                listBody.innerHTML = '';
+
+                sortedSeriesNames.forEach(sName => {
+                    const books = seriesGroups[sName];
+
+                    const headerRow = document.createElement('tr');
+                    headerRow.className = "bg-slate-900/30 text-slate-300";
+                    headerRow.innerHTML = `
+                        <td colspan="6" class="p-3 font-semibold border-y border-slate-800 text-xs text-brand-500">
+                            <div class="flex items-center justify-between">
+                                <span class="flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4"></i> ${sName}</span>
+                                <span class="text-[10px] text-slate-500 font-normal font-mono">${books.length} ${books.length === 1 ? 'Volume' : 'Volumes'}</span>
+                            </div>
+                        </td>
+                    `;
+                    listBody.appendChild(headerRow);
+
+                    books.forEach(book => {
+                        listBody.appendChild(createListRow(book));
+                    });
+                });
+
+                if (standalones.length > 0) {
+                    const headerRow = document.createElement('tr');
+                    headerRow.className = "bg-slate-900/30 text-slate-300";
+                    headerRow.innerHTML = `
+                        <td colspan="6" class="p-3 font-semibold border-y border-slate-800 text-xs text-slate-400">
+                            <div class="flex items-center justify-between">
+                                <span class="flex items-center gap-2"><i data-lucide="book" class="w-4 h-4"></i> Standalone Titles</span>
+                                <span class="text-[10px] text-slate-500 font-normal font-mono">${standalones.length} ${standalones.length === 1 ? 'Book' : 'Books'}</span>
+                            </div>
+                        </td>
+                    `;
+                    listBody.appendChild(headerRow);
+
+                    standalones.forEach(book => {
+                        listBody.appendChild(createListRow(book));
+                    });
+                }
+            }
+        }
+
+        // Creates compact tactile cover grid card with hybrid cover features
+        // Height reduced to exactly 150px (highly dense visual style)
+        function createCompactGridCard(book) {
+            const card = document.createElement('div');
+            card.className = "group bg-slate-900/60 border border-slate-800/80 rounded-lg hover:border-slate-700/80 hover:bg-slate-900 transition-all duration-300 shadow-md flex flex-col justify-between overflow-hidden cursor-pointer h-[150px]";
+            card.onclick = () => openModal(book);
+
+            const style = getCategoryStyle(book.categories);
+            const hours = Math.floor((book.length || 0) / 60);
+            const mins = (book.length || 0) % 60;
+            const hoursLabel = hours > 0 ? `${hours}h ` : '';
+            const lengthStr = `${hoursLabel}${mins}m`;
+
+            // Extract Series Number cleanly
+            const volNum = book.seriesOrder ? book.seriesOrder.split(':')[0].trim() : '#';
+
+            // Support dynamic local cover image configurations
+            let coverStyle = '';
+            const hasImage = !!book.backgroundImage;
+            
+            if (hasImage) {
+                let imgPath = book.backgroundImage;
+                // If it doesn't already reference folder pathing, prepend it locally
+                if (!imgPath.startsWith('backgroundImage/') && !imgPath.startsWith('http://') && !imgPath.startsWith('https://') && !imgPath.startsWith('./')) {
+                    imgPath = 'backgroundImage/' + imgPath;
+                }
+                coverStyle = `background-image: url('${imgPath}'); background-size: cover; background-position: center;`;
+            }
+
+            // Conditional overlay style based on image presence
+            const overlayClass = hasImage 
+                ? "absolute inset-0 bg-slate-950/40 group-hover:bg-slate-950/20 transition-colors" 
+                : "absolute inset-0 bg-slate-950/10 group-hover:bg-slate-950/0 transition-colors";
+
+            // Conditional background capsule classes for cover text overlay based on image presence
+            const catBadgeClass = hasImage
+                ? "text-[8px] font-extrabold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded tracking-wider uppercase truncate max-w-[65%]"
+                : "text-[8px] font-extrabold text-white tracking-wider uppercase truncate max-w-[65%] drop-shadow-sm";
+
+            const seriesBadgeClass = hasImage
+                ? "inline-block text-[8px] font-bold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full"
+                : "inline-block text-[8px] font-bold text-white/95 tracking-tight truncate max-w-full drop-shadow-sm";
+
+            card.innerHTML = `
+                <!-- Dynamic gradient or image tactile cover block (h-20 for vertical cover styling) -->
+                <div class="h-20 bg-gradient-to-br ${style.gradient} relative p-2 flex flex-col justify-between overflow-hidden shrink-0" style="${coverStyle}">
+                    <!-- Dark translucent overlay to guarantee typography and icon readability -->
+                    <div class="${overlayClass}"></div>
+                    <div class="absolute -right-6 -bottom-6 w-16 h-16 bg-white/5 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500"></div>
+
+                    <div class="flex justify-between items-center z-10 w-full gap-1">
+                        <span class="${catBadgeClass}">
+                            ${book.categories ? book.categories.split(';')[0] : 'STORY'}
+                        </span>
+                        <!-- Light white icon with drop shadow -->
+                        <i data-lucide="${style.icon}" class="w-3.5 h-3.5 text-white drop-shadow-md"></i>
+                    </div>
+
+                    <!-- Series details with light, high-contrast Slate Capsule -->
+                    <div class="z-10 text-left w-full mt-auto">
+                        ${book.series ? `
+                            <span class="${seriesBadgeClass}">
+                                ${book.series} • Vol. ${volNum}
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <!-- Consolidated details metadata (flat design, no border separator) -->
+                <div class="p-2 flex-1 flex flex-col justify-between bg-slate-900/40">
+                    <div class="space-y-0.5">
+                        <h3 class="text-xs font-bold text-slate-100 group-hover:text-brand-500 transition-colors leading-tight line-clamp-1" title="${book.title}">
+                            ${book.title}
+                        </h3>
+                        <p class="text-[10.5px] text-slate-400 font-medium truncate">By ${book.authors}</p>
+                    </div>
+
+                    <!-- Bottom statistics details (slightly increased font size and icons) -->
+                    <div class="flex items-center justify-between pt-0.5">
+                        <span class="inline-flex items-center gap-1 text-[10px] text-slate-400">
+                            <i data-lucide="clock" class="w-3 h-3 text-slate-500"></i>
+                            ${lengthStr}
+                        </span>
+                        <span class="inline-flex items-center gap-0.5 text-[10px] font-bold text-brand-500">
+                            <i data-lucide="star" class="w-3 h-3 fill-brand-500 text-brand-500"></i>
+                            ${book.ratingOverall ? book.ratingOverall.toFixed(1) : '--'}
+                        </span>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        // Creates clean row item for List layout
+        function createListRow(book) {
+            const row = document.createElement('tr');
+            row.className = "hover:bg-slate-900/80 transition-colors duration-150 cursor-pointer text-slate-300";
+            row.onclick = () => openModal(book);
+
+            const hours = Math.floor((book.length || 0) / 60);
+            const mins = (book.length || 0) % 60;
+            const lengthStr = `${hours > 0 ? hours + 'h ' : ''}${mins}m`;
+
+            row.innerHTML = `
+                <td class="p-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-1.5 h-6 rounded-full bg-gradient-to-b ${getCategoryStyle(book.categories).gradient} shrink-0"></div>
+                        <div>
+                            <span class="font-semibold text-slate-100 block max-w-xs sm:max-w-md truncate">${book.title}</span>
+                            ${book.series ? `<span class="text-[9px] text-brand-500 font-medium block truncate">${book.series} #${book.seriesOrder ? book.seriesOrder.split(':')[0].trim() : ''}</span>` : ''}
+                        </div>
+                    </div>
+                </td>
+                <td class="p-3 text-slate-400 max-w-[120px] truncate">By ${book.authors}</td>
+                <td class="p-3 text-slate-500 max-w-[150px] truncate">Narrator: ${book.narrators}</td>
+                <td class="p-3 text-center font-mono whitespace-nowrap text-slate-400">${lengthStr}</td>
+                <td class="p-3 text-center">
+                    <span class="inline-flex items-center gap-0.5 text-brand-500 font-semibold font-mono">
+                        <i data-lucide="star" class="w-3.5 h-3.5 fill-brand-500 text-brand-500 inline"></i>
+                        ${book.ratingOverall ? book.ratingOverall.toFixed(1) : '--'}
+                    </span>
+                </td>
+                <td class="p-3 text-right">
+                    <button class="text-[10px] px-2.5 py-1 bg-slate-800 hover:bg-slate-700 hover:text-white rounded-md transition-colors text-slate-300">
+                        Details
+                    </button>
+                </td>
+            `;
+            return row;
+        }
+
+        // Cinematic Modal Control Functions
+        function openModal(book) {
+            const modal = document.getElementById('detail-modal');
+            const card = document.getElementById('modal-card');
+
+            // Set Cover colors, symbols, and optional background cover image inside modal
+            const style = getCategoryStyle(book.categories);
+            const coverArt = document.getElementById('modal-cover-art');
+            coverArt.className = `w-32 h-32 md:w-40 md:h-40 rounded-xl flex flex-col justify-between p-3.5 shrink-0 shadow-lg text-slate-950 bg-gradient-to-br ${style.gradient} relative overflow-hidden`;
+
+            let coverImgStyle = '';
+            if (book.backgroundImage) {
+                let imgPath = book.backgroundImage;
+                if (!imgPath.startsWith('backgroundImage/') && !imgPath.startsWith('http://') && !imgPath.startsWith('https://') && !imgPath.startsWith('./')) {
+                    imgPath = 'backgroundImage/' + imgPath;
+                }
+                coverImgStyle = `background-image: url('${imgPath}'); background-size: cover; background-position: center;`;
+            }
+            coverArt.style = coverImgStyle;
+
+            coverArt.innerHTML = `
+                <div class="absolute inset-0 bg-slate-950/20"></div>
+                <div class="z-10 flex flex-col justify-between h-full w-full">
+                    <i data-lucide="${style.icon}" class="w-7 h-7 text-white drop-shadow"></i>
+                    <span class="font-extrabold text-[10px] uppercase tracking-wider block text-right text-white bg-slate-950/50 px-1.5 py-0.5 rounded w-max ml-auto backdrop-blur-sm" id="modal-cover-cat">
+                        ${book.categories ? book.categories.split(';')[0] : 'STORY'}
+                    </span>
+                </div>
+            `;
+
+            // Series Badge
+            const seriesBadge = document.getElementById('modal-series-badge');
+            if (book.series) {
+                seriesBadge.textContent = `${book.series} #${book.seriesOrder ? book.seriesOrder.split(':')[0].trim() : ''}`;
+                seriesBadge.classList.remove('hidden');
+            } else {
+                seriesBadge.classList.add('hidden');
+            }
+
+            // Title block (shown once in detail)
+            document.getElementById('modal-title').textContent = book.title;
+            document.getElementById('modal-subtitle').textContent = book.subtitle || '';
+            document.getElementById('modal-author').textContent = book.authors;
+            document.getElementById('modal-narrator').textContent = book.narrators;
+            document.getElementById('modal-publisher').textContent = book.publisher || 'N/A';
+            document.getElementById('modal-published-date').textContent = book.datePublished || 'N/A';
+
+            // Time translation
+            const hours = Math.floor((book.length || 0) / 60);
+            const mins = (book.length || 0) % 60;
+            document.getElementById('modal-duration').textContent = `${hours}h ${mins}m`;
+
+            // Individual Sub-Ratings
+            document.getElementById('modal-rating-story').textContent = book.ratingStory ? book.ratingStory.toFixed(2) : '--';
+            document.getElementById('modal-rating-perf').textContent = book.ratingPerformance ? book.ratingPerformance.toFixed(2) : '--';
+
+            // Description raw content
+            document.getElementById('modal-description').innerHTML = book.description || '<p class="text-slate-500 italic">No publisher synopsis available.</p>';
+
+            // Show animation triggers
+            modal.classList.remove('pointer-events-none');
+            modal.classList.add('opacity-100');
+            card.classList.remove('scale-95');
+            card.classList.add('scale-100');
+
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('detail-modal');
+            const card = document.getElementById('modal-card');
+
+            modal.classList.remove('opacity-100');
+            modal.classList.add('pointer-events-none');
+            card.classList.add('scale-95');
+            card.classList.remove('scale-100');
+        }
+
+        // Close modal if user clicks outside of target container card
+        document.getElementById('detail-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('detail-modal')) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
