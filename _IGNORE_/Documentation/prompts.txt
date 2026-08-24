@@ -77,5 +77,11 @@ Output: Lib7.html
 NOTE: This popped up after Prompt 7 as a suggestion of what to ask next. This one was a pretty good one and something that I had forgotten about.
 NOTE 2: It appears that I didn't save the output for the last couple of prompts. I thought I had, but it looks like we're back to Lib7.html as the file for this change.
 
-
+Prompt 9:
+    - My Thinking:
+    - Prompt: "Increase metadata text font sizes. Only use capsule backgrounds on cover text if an image actually exists. Start semantic version tracking at Version 5.0.0."
+AI Response:
+    - Bumped font sizes of titles, authors, and stats. Set a locked 155px card height to prevent text clipping. Programmed conditional wrapper class templates based on hasImage state. Added version history comments to <head>.
+Output: Lib8.html + Lib9.html + Lib10.html
+NOTE: It looks like there were a few prompts that got missed in the summary. Lib10.html is the file that has the versioning added.
 
