@@ -56,7 +56,7 @@ Prompt 6:
         - Modified JSON file to include properties for the Image.
 AI Response:
     - Re-proportioned card headers to a distinct h-20 layout (height 150px). Coded dynamic CSS background resolution pointing to a localized cover image directory. Ensured readability using subtle overlay drop-shadows.
-Output: Lib7.html
+Output: Lib???.html
 NOTE: Gemini also modified the modal for the card to include the new background image, even though I didn't ask for that.
 
 Prompt 7:
@@ -64,13 +64,18 @@ Prompt 7:
     - Prompt: "Path for backgroundImage will be inside a subfolder named backgroundImage/."
 AI Response:
     - Implemented path building inside the JS engine so any simple filename defined in the JSON's "backgroundImage" gracefully resolves to backgroundImage/filename.png at runtime.
-Output: Lib8.html
+Output: None saved.
 NOTE: Gemini keeps adding comments to pieces of the code that could use comments. Nice help. It also assumed that if I wanted a background image on the main card, I'd also want it on the modal card.
 
 
-
-
-
+Prompt 8:
+    - My Thinking: This one was actually a suggestion by Gemini, and I thought it would be a good idea. I wanted to add a filter for Narrator.
+    - Prompt: "Add a feature to filter books by Narrator."
+AI Response:
+    - Wrote a parser that scans books, splits multi-narrator strings (comma-separated), extracts unique names, populates a new dropdown, and syncs filters with the active query.
+Output: Lib7.html
+NOTE: This popped up after Prompt 7 as a suggestion of what to ask next. This one was a pretty good one and something that I had forgotten about.
+NOTE 2: It appears that I didn't save the output for the last couple of prompts. I thought I had, but it looks like we're back to Lib7.html as the file for this change.
 
 
 

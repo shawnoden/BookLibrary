@@ -52,13 +52,13 @@
         .line-clamp-2 {
             display: -webkit-box;
             -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;  
+            -webkit-box-orient: vertical;
             overflow: hidden;
         }
         .line-clamp-1 {
             display: -webkit-box;
             -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;  
+            -webkit-box-orient: vertical;
             overflow: hidden;
         }
     </style>
@@ -162,7 +162,7 @@
                         <!-- Search Input -->
                         <div class="relative lg:col-span-3">
                             <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                            <input type="text" id="search-input" placeholder="Search title, author, narrator, series..." 
+                            <input type="text" id="search-input" placeholder="Search title, author, narrator, series..."
                                    class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 pl-10 pr-4 text-xs focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-slate-100 placeholder-slate-500 transition-all">
                         </div>
 
@@ -457,8 +457,8 @@
 
             // Average Overall Rating
             const booksWithRatings = libraryData.filter(b => (b.ratingOverall || 0) > 0);
-            const averageRating = booksWithRatings.length > 0 
-                ? booksWithRatings.reduce((acc, curr) => acc + curr.ratingOverall, 0) / booksWithRatings.length 
+            const averageRating = booksWithRatings.length > 0
+                ? booksWithRatings.reduce((acc, curr) => acc + curr.ratingOverall, 0) / booksWithRatings.length
                 : 0;
             document.getElementById('card-rating').textContent = averageRating.toFixed(2);
 
