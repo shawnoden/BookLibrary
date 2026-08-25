@@ -102,6 +102,25 @@ Output: LibraryView_v5_2_0.html
 NOTE: I renameed the output file.
 
 
+Prompt 11:
+    - My Thinking: I wanted to give myself links to download or play the audiobooks that I have files for. 
+    - Prompt: "Check if book exists in local bookFiles/ folder. If yes, add a "Play" and "Download" button to the modal. "Play" must trigger a persistent custom floating audio player. Parse semicolon-delimited categories as compact individual pills. Apply style tweaks to badges."
+    - My actions:
+        - Create bookFiles folder.
+        - Added single mp3 for testing. crash.mp3 << this was a simple test file to make sure player works.
+        - Modified JSON file to include properties for the bookFile.
+AI Response: 
+    - Implemented HTML5 <audio> engine streaming. Coded a sleek footer audio bar with draggable scrub timeline, skipping/rewinding (30s), active volume control, and dynamic visualizer overlays. Split category strings into distinct wrap-around flex badges.
+        - Incremented semantic version number to 5.3.0
+        - Added check to support playing and downloading local audiobooks from "bookFiles" folder configured in library.json
+        - Integrated a gorgeous floating custom media player with interactive progress tracking, play/pause and 30s seek controls
+        - Restructured grid cards and detail modal to split and render all categories into individual compact pills
+        - Changed seriesBadgeClass text size to 13px in createCompactGridCard
+        - Updated catBadgeClass and seriesBadgeClass styles to use high-contrast glass gradients when hasImage is false
+        - Updated series template rendering to separate Series Name and Volume into separate distinct badges with spacing
+Output: LibraryView_v5_3_0.html 
+NOTE: I added way more in this request than I probably should have. I thought it was nice that Gemini went ahead and wrote an mp3 player for me. 
+
 
 
 
