@@ -91,25 +91,25 @@ NOTE: It looks like there were a few prompts that got missed in the summary. Lib
 Prompt 10:
     - My Thinking: Gemini created a Grid view and a List view. Very handy. But I want to be able to sort the List view by clicking on the column header.
     - Prompt: "Make all columns in the Detailed List Table view sortable (except the Action column)."
-AI Response: 
+AI Response:
     - Transformed table headers into clickable sorters. Added CSS pointers, dynamic chevron indicators (pointing up/down to show active sort directions), and synced table clicks with the main sorting dropdown.
         - Incremented semantic version number to 5.2.0
         - Made all Detailed List View columns (except Action) fully interactive and sortable
         - Added active visual sort chevron indicators next to column headers
         - Synchronized direct column header clicks with the main sorting dropdown selection
         - Expanded sorting algorithm to support bidirectional field sorting (Title, Author, Narrator, Rating, Length)
-Output: LibraryView_v5_2_0.html 
+Output: LibraryView_v5_2_0.html
 NOTE: I renameed the output file.
 
 
 Prompt 11:
-    - My Thinking: I wanted to give myself links to download or play the audiobooks that I have files for. 
+    - My Thinking: I wanted to give myself links to download or play the audiobooks that I have files for.
     - Prompt: "Check if book exists in local bookFiles/ folder. If yes, add a "Play" and "Download" button to the modal. "Play" must trigger a persistent custom floating audio player. Parse semicolon-delimited categories as compact individual pills. Apply style tweaks to badges."
     - My actions:
         - Create bookFiles folder.
         - Added single mp3 for testing. crash.mp3 << this was a simple test file to make sure player works.
         - Modified JSON file to include properties for the bookFile.
-AI Response: 
+AI Response:
     - Implemented HTML5 <audio> engine streaming. Coded a sleek footer audio bar with draggable scrub timeline, skipping/rewinding (30s), active volume control, and dynamic visualizer overlays. Split category strings into distinct wrap-around flex badges.
         - Incremented semantic version number to 5.3.0
         - Added check to support playing and downloading local audiobooks from "bookFiles" folder configured in library.json
@@ -118,9 +118,19 @@ AI Response:
         - Changed seriesBadgeClass text size to 13px in createCompactGridCard
         - Updated catBadgeClass and seriesBadgeClass styles to use high-contrast glass gradients when hasImage is false
         - Updated series template rendering to separate Series Name and Volume into separate distinct badges with spacing
-Output: LibraryView_v5_3_0.html 
-NOTE: I added way more in this request than I probably should have. I thought it was nice that Gemini went ahead and wrote an mp3 player for me. 
+Output: LibraryView_v5_3_0.html
+NOTE: I added way more in this request than I probably should have. I thought it was nice that Gemini went ahead and wrote an mp3 player for me.
 
+
+Prompt 12:
+    - My Thinking: After adding multiple category pills, if they stretched to more than one line, they were overlapping the title pills. I needed to adjust the CSS of the categories.
+    - Prompt: "Make category pills behave visually the same (border and translucency) when a background image is used."
+AI Response:
+    - Consolidated catBadgeClass into a single static CSS layout template, ensuring gorgeous glassmorphic pills render identically across both gradient and image card covers.
+        - Incremented semantic version number to 5.4.0
+        - Standardized category pills style: now always renders using the glassmorphic theme (backdrop-blur, translucent white background, and borders) even when a local book cover (backgroundImage) is present.
+Output: LibraryView_v5_4_0.html
+NOTE:
 
 
 
