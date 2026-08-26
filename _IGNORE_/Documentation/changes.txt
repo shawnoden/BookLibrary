@@ -44,6 +44,10 @@ Changes:
 - Updated the branding icon from headphones to a book logo
 - Renamed stats panels from "Total Audiobooks" to "Total eBooks" for platform consistency
 
+Version: 5.7.0
+Changes:
+- Incremented semantic version number to 5.7.0
+- Added a custom-designed vector favicon in SVG format inside a high-compatibility URI that matches the "book-open" dashboard brand mark
 
 
 
