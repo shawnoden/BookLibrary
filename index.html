@@ -788,10 +788,11 @@
             }
         }
 
-        // Creates compact tactile cover grid card with locked ~140px height limit (1/3 reduction from 208px)
+        // Creates compact tactile cover grid card with hybrid cover features
+        // Height reduced to exactly 150px (highly dense visual style)
         function createCompactGridCard(book) {
             const card = document.createElement('div');
-            card.className = "group bg-slate-900/60 border border-slate-800/80 rounded-lg hover:border-slate-700/80 hover:bg-slate-900 transition-all duration-300 shadow-sm flex flex-col justify-between overflow-hidden cursor-pointer h-[140px]";
+            card.className = "group bg-slate-900/60 border border-slate-800/80 rounded-lg hover:border-slate-700/80 hover:bg-slate-900 transition-all duration-300 shadow-md flex flex-col justify-between overflow-hidden cursor-pointer h-[150px]";
             card.onclick = () => openModal(book);
 
             const style = getCategoryStyle(book.categories);
@@ -803,46 +804,59 @@
             // Extract Series Number cleanly
             const volNum = book.seriesOrder ? book.seriesOrder.split(':')[0].trim() : '#';
 
+            // Support dynamic local cover image configurations
+            let coverStyle = '';
+            if (book.backgroundImage) {
+                let imgPath = book.backgroundImage;
+                // If it doesn't already reference folder pathing, prepend it locally
+                if (!imgPath.startsWith('backgroundImage/') && !imgPath.startsWith('http://') && !imgPath.startsWith('https://') && !imgPath.startsWith('./')) {
+                    imgPath = 'backgroundImage/' + imgPath;
+                }
+                coverStyle = `background-image: url('${imgPath}'); background-size: cover; background-position: center;`;
+            }
+
             card.innerHTML = `
-                <!-- Miniature cover block -->
-                <div class="h-16 bg-gradient-to-br ${style.gradient} relative p-2 flex flex-col justify-between overflow-hidden shrink-0">
-                    <div class="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-colors"></div>
-                    <div class="absolute -right-6 -bottom-6 w-16 h-16 bg-white/10 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500"></div>
+                <!-- Dynamic gradient or image tactile cover block (h-20 for vertical cover styling) -->
+                <div class="h-20 bg-gradient-to-br ${style.gradient} relative p-2 flex flex-col justify-between overflow-hidden shrink-0" style="${coverStyle}">
+                    <!-- Dark translucent overlay to guarantee typography and icon readability -->
+                    <div class="absolute inset-0 bg-slate-950/30 group-hover:bg-slate-950/15 transition-colors"></div>
+                    <div class="absolute -right-6 -bottom-6 w-16 h-16 bg-white/5 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500"></div>
 
                     <div class="flex justify-between items-center z-10 w-full gap-1">
-                        <span class="text-[8px] font-extrabold text-white bg-slate-950/60 border border-white/10 px-1.5 py-0.5 rounded backdrop-blur-sm tracking-wider uppercase truncate max-w-[65%]">
+                        <span class="text-[7.5px] font-extrabold text-white bg-slate-950/85 border border-white/10 px-1.5 py-0.5 rounded tracking-wider uppercase truncate max-w-[65%]">
                             ${book.categories ? book.categories.split(';')[0] : 'STORY'}
                         </span>
-                        <i data-lucide="${style.icon}" class="w-4 h-4 text-white drop-shadow"></i>
+                        <!-- Light white icon with drop shadow -->
+                        <i data-lucide="${style.icon}" class="w-3.5 h-3.5 text-white drop-shadow-md"></i>
                     </div>
 
-                    <!-- Series details with maximum contrast styling -->
-                    <div class="z-10 text-left w-full">
+                    <!-- Series details with light, high-contrast Slate Capsule -->
+                    <div class="z-10 text-left w-full mt-auto">
                         ${book.series ? `
-                            <span class="inline-block text-[8px] font-bold text-white bg-slate-950/70 border border-white/10 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full">
+                            <span class="inline-block text-[7.5px] font-bold text-white bg-slate-950/85 border border-white/10 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full">
                                 ${book.series} • Vol. ${volNum}
                             </span>
                         ` : ''}
                     </div>
                 </div>
 
-                <!-- Consolidated details (title/author rendered exactly once - Divider Border Line Removed) -->
+                <!-- Consolidated details metadata (flat design, no border separator) -->
                 <div class="p-2 flex-1 flex flex-col justify-between bg-slate-900/40">
                     <div class="space-y-0.5">
-                        <h3 class="text-xs font-bold text-slate-100 group-hover:text-brand-500 transition-colors leading-tight line-clamp-1" title="${book.title}">
+                        <h3 class="text-[11px] font-bold text-slate-100 group-hover:text-brand-500 transition-colors leading-tight line-clamp-1" title="${book.title}">
                             ${book.title}
                         </h3>
-                        <p class="text-[10px] text-slate-400 font-medium truncate">By ${book.authors}</p>
+                        <p class="text-[9.5px] text-slate-400 font-medium truncate">By ${book.authors}</p>
                     </div>
 
-                    <!-- Bottom compact statistics strip (Flat design - border removed) -->
-                    <div class="flex items-center justify-between pt-1 mt-0.5">
-                        <span class="inline-flex items-center gap-1 text-[10px] text-slate-400">
-                            <i data-lucide="clock" class="w-3 h-3 text-slate-500"></i>
+                    <!-- Bottom statistics details -->
+                    <div class="flex items-center justify-between pt-0.5">
+                        <span class="inline-flex items-center gap-1 text-[9px] text-slate-400">
+                            <i data-lucide="clock" class="w-2.5 h-2.5 text-slate-500"></i>
                             ${lengthStr}
                         </span>
-                        <span class="inline-flex items-center gap-0.5 text-[10px] font-bold text-brand-500">
-                            <i data-lucide="star" class="w-3 h-3 fill-brand-500 text-brand-500"></i>
+                        <span class="inline-flex items-center gap-0.5 text-[9px] font-bold text-brand-500">
+                            <i data-lucide="star" class="w-2.5 h-2.5 fill-brand-500 text-brand-500"></i>
                             ${book.ratingOverall ? book.ratingOverall.toFixed(1) : '--'}
                         </span>
                     </div>
@@ -894,13 +908,29 @@
             const modal = document.getElementById('detail-modal');
             const card = document.getElementById('modal-card');
 
-            // Set Cover colors and symbols
+            // Set Cover colors, symbols, and optional background cover image inside modal
             const style = getCategoryStyle(book.categories);
             const coverArt = document.getElementById('modal-cover-art');
-            coverArt.className = `w-32 h-32 md:w-40 md:h-40 rounded-xl flex flex-col justify-between p-3.5 shrink-0 shadow-lg text-slate-950 bg-gradient-to-br ${style.gradient}`;
+            coverArt.className = `w-32 h-32 md:w-40 md:h-40 rounded-xl flex flex-col justify-between p-3.5 shrink-0 shadow-lg text-slate-950 bg-gradient-to-br ${style.gradient} relative overflow-hidden`;
+
+            let coverImgStyle = '';
+            if (book.backgroundImage) {
+                let imgPath = book.backgroundImage;
+                if (!imgPath.startsWith('backgroundImage/') && !imgPath.startsWith('http://') && !imgPath.startsWith('https://') && !imgPath.startsWith('./')) {
+                    imgPath = 'backgroundImage/' + imgPath;
+                }
+                coverImgStyle = `background-image: url('${imgPath}'); background-size: cover; background-position: center;`;
+            }
+            coverArt.style = coverImgStyle;
+
             coverArt.innerHTML = `
-                <i data-lucide="${style.icon}" class="w-7 h-7 text-slate-950/70"></i>
-                <span class="font-extrabold text-[10px] uppercase tracking-wider block text-right text-slate-950/80" id="modal-cover-cat">${book.categories ? book.categories.split(';')[0] : 'STORY'}</span>
+                <div class="absolute inset-0 bg-slate-950/20"></div>
+                <div class="z-10 flex flex-col justify-between h-full w-full">
+                    <i data-lucide="${style.icon}" class="w-7 h-7 text-white drop-shadow"></i>
+                    <span class="font-extrabold text-[10px] uppercase tracking-wider block text-right text-white bg-slate-950/50 px-1.5 py-0.5 rounded w-max ml-auto backdrop-blur-sm" id="modal-cover-cat">
+                        ${book.categories ? book.categories.split(';')[0] : 'STORY'}
+                    </span>
+                </div>
             `;
 
             // Series Badge
