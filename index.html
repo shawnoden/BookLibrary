@@ -3,11 +3,13 @@
 <head>
     <!--
         Audible Archive Dashboard
-        Version: 5.1.0
+        Version: 5.2.0
         Changes:
-        - Incremented semantic version number to 5.1.0
-        - Scaled up grid card font sizes (Titles to text-sm, authors to text-xs, stats to text-[11px])
-        - Micro-adjusted card height to 155px to ensure no text overflows or clipping occurs
+        - Incremented semantic version number to 5.2.0
+        - Made all Detailed List View columns (except Action) fully interactive and sortable
+        - Added active visual sort chevron indicators next to column headers
+        - Synchronized direct column header clicks with the main sorting dropdown selection
+        - Expanded sorting algorithm to support bidirectional field sorting (Title, Author, Narrator, Rating, Length)
     -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -179,10 +181,16 @@
                             <div class="flex items-center gap-1.5 w-full sm:w-auto">
                                 <span class="text-[10px] text-slate-500 uppercase tracking-wider hidden sm:inline whitespace-nowrap">Sort:</span>
                                 <select id="sort-select" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-brand-500">
-                                    <option value="rating">Highest Rating</option>
+                                    <option value="rating_desc">Highest Rating</option>
+                                    <option value="rating_asc">Lowest Rating</option>
                                     <option value="length_desc">Duration (Longest First)</option>
                                     <option value="length_asc">Duration (Shortest First)</option>
-                                    <option value="title">Title (A-Z)</option>
+                                    <option value="title_asc">Title (A-Z)</option>
+                                    <option value="title_desc">Title (Z-A)</option>
+                                    <option value="author_asc">Author (A-Z)</option>
+                                    <option value="author_desc">Author (Z-A)</option>
+                                    <option value="narrator_asc">Narrator (A-Z)</option>
+                                    <option value="narrator_desc">Narrator (Z-A)</option>
                                     <option value="published">Date Published</option>
                                 </select>
                             </div>
@@ -234,14 +242,39 @@
                 <div id="books-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
 
                 <div id="books-list" class="hidden overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40">
-                    <table class="w-full text-left border-collapse text-xs">
+                    <table class="w-full text-left border-collapse text-xs select-none">
                         <thead>
                             <tr class="bg-slate-900/90 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
-                                <th class="p-3">Title & Series</th>
-                                <th class="p-3">Author</th>
-                                <th class="p-3">Narrator</th>
-                                <th class="p-3 text-center">Length</th>
-                                <th class="p-3 text-center">Rating</th>
+                                <th class="p-3 cursor-pointer hover:text-white transition-colors" onclick="handleHeaderSort('title')">
+                                    <div class="flex items-center gap-1">
+                                        <span>Title & Series</span>
+                                        <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0" id="sort-icon-title"></i>
+                                    </div>
+                                </th>
+                                <th class="p-3 cursor-pointer hover:text-white transition-colors" onclick="handleHeaderSort('author')">
+                                    <div class="flex items-center gap-1">
+                                        <span>Author</span>
+                                        <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0" id="sort-icon-author"></i>
+                                    </div>
+                                </th>
+                                <th class="p-3 cursor-pointer hover:text-white transition-colors" onclick="handleHeaderSort('narrator')">
+                                    <div class="flex items-center gap-1">
+                                        <span>Narrator</span>
+                                        <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0" id="sort-icon-narrator"></i>
+                                    </div>
+                                </th>
+                                <th class="p-3 text-center cursor-pointer hover:text-white transition-colors" onclick="handleHeaderSort('length')">
+                                    <div class="flex items-center justify-center gap-1">
+                                        <span>Length</span>
+                                        <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0" id="sort-icon-length"></i>
+                                    </div>
+                                </th>
+                                <th class="p-3 text-center cursor-pointer hover:text-white transition-colors" onclick="handleHeaderSort('rating')">
+                                    <div class="flex items-center justify-center gap-1">
+                                        <span>Rating</span>
+                                        <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0" id="sort-icon-rating"></i>
+                                    </div>
+                                </th>
                                 <th class="p-3 text-right">Action</th>
                             </tr>
                         </thead>
@@ -340,7 +373,7 @@
         let activeCategory = 'all';
         let activeNarrator = 'all'; // Narrator filter state
         let searchQuery = '';
-        let currentSort = 'rating';
+        let currentSort = 'rating_desc'; // Upgraded from flat 'rating' to new schema
         let groupBySeries = false;
 
         // Styling palettes matching category genres dynamically
@@ -619,13 +652,13 @@
             searchQuery = '';
             activeCategory = 'all';
             activeNarrator = 'all';
-            currentSort = 'rating';
+            currentSort = 'rating_desc';
             groupBySeries = false;
 
             document.getElementById('search-input').value = '';
             document.getElementById('category-filter').value = 'all';
             document.getElementById('narrator-filter').value = 'all';
-            document.getElementById('sort-select').value = 'rating';
+            document.getElementById('sort-select').value = 'rating_desc';
 
             const groupBtn = document.getElementById('group-series-btn');
             groupBtn.className = "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200 w-full sm:w-auto shrink-0";
@@ -665,16 +698,28 @@
                 return matchesCategory && matchesNarrator && matchesSearch;
             });
 
-            // Sorting
+            // Sorting (Upgraded dynamic multidirectional parsing schema)
             result.sort((a, b) => {
-                if (currentSort === 'rating') {
+                if (currentSort === 'rating_desc') {
                     return (b.ratingOverall || 0) - (a.ratingOverall || 0);
+                } else if (currentSort === 'rating_asc') {
+                    return (a.ratingOverall || 0) - (b.ratingOverall || 0);
                 } else if (currentSort === 'length_desc') {
                     return (b.length || 0) - (a.length || 0);
                 } else if (currentSort === 'length_asc') {
                     return (a.length || 0) - (b.length || 0);
-                } else if (currentSort === 'title') {
+                } else if (currentSort === 'title_asc') {
                     return a.title.localeCompare(b.title);
+                } else if (currentSort === 'title_desc') {
+                    return b.title.localeCompare(a.title);
+                } else if (currentSort === 'author_asc') {
+                    return a.authors.localeCompare(b.authors);
+                } else if (currentSort === 'author_desc') {
+                    return b.authors.localeCompare(a.authors);
+                } else if (currentSort === 'narrator_asc') {
+                    return a.narrators.localeCompare(b.narrators);
+                } else if (currentSort === 'narrator_desc') {
+                    return b.narrators.localeCompare(a.narrators);
                 } else if (currentSort === 'published') {
                     return new Date(b.datePublished || 0) - new Date(a.datePublished || 0);
                 }
@@ -689,6 +734,69 @@
             if (!seriesOrder) return 999;
             const match = seriesOrder.match(/\d+/);
             return match ? parseInt(match[0], 10) : 999;
+        }
+
+        // Interactive List View Header Sort Trigger
+        function handleHeaderSort(field) {
+            let nextSort = '';
+            if (field === 'title') {
+                nextSort = (currentSort === 'title_asc') ? 'title_desc' : 'title_asc';
+            } else if (field === 'author') {
+                nextSort = (currentSort === 'author_asc') ? 'author_desc' : 'author_asc';
+            } else if (field === 'narrator') {
+                nextSort = (currentSort === 'narrator_asc') ? 'narrator_desc' : 'narrator_asc';
+            } else if (field === 'length') {
+                nextSort = (currentSort === 'length_desc') ? 'length_asc' : 'length_desc';
+            } else if (field === 'rating') {
+                nextSort = (currentSort === 'rating_desc') ? 'rating_asc' : 'rating_desc';
+            }
+
+            currentSort = nextSort;
+            // Keep main controls drop-down matching perfectly in sync
+            document.getElementById('sort-select').value = currentSort;
+            render();
+        }
+
+        // Directional Chevron Icon visualizer for active table search states
+        function updateSortIcons() {
+            const fields = ['title', 'author', 'narrator', 'length', 'rating'];
+            fields.forEach(f => {
+                const iconEl = document.getElementById(`sort-icon-${f}`);
+                if (iconEl) {
+                    iconEl.setAttribute('data-lucide', 'chevrons-up-down');
+                    iconEl.className = 'w-3.5 h-3.5 text-slate-500 shrink-0';
+                }
+            });
+
+            let activeField = '';
+            let isAsc = true;
+
+            if (currentSort.startsWith('title')) {
+                activeField = 'title';
+                isAsc = currentSort === 'title_asc';
+            } else if (currentSort.startsWith('author')) {
+                activeField = 'author';
+                isAsc = currentSort === 'author_asc';
+            } else if (currentSort.startsWith('narrator')) {
+                activeField = 'narrator';
+                isAsc = currentSort === 'narrator_asc';
+            } else if (currentSort.startsWith('length')) {
+                activeField = 'length';
+                isAsc = currentSort === 'length_asc';
+            } else if (currentSort.startsWith('rating')) {
+                activeField = 'rating';
+                isAsc = currentSort === 'rating_asc';
+            }
+
+            if (activeField) {
+                const activeIcon = document.getElementById(`sort-icon-${activeField}`);
+                if (activeIcon) {
+                    activeIcon.setAttribute('data-lucide', isAsc ? 'chevron-up' : 'chevron-down');
+                    activeIcon.className = 'w-3.5 h-3.5 text-brand-500 font-bold shrink-0';
+                }
+            }
+
+            lucide.createIcons();
         }
 
         function render() {
@@ -720,8 +828,8 @@
                 renderFlat(data, gridContainer, listBody);
             }
 
-            // Always update standard vector icons generated dynamically
-            lucide.createIcons();
+            // Always update standard vector icons generated dynamically and active headers
+            updateSortIcons();
         }
 
         function renderFlat(data, gridContainer, listBody) {

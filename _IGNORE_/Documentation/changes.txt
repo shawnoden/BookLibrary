@@ -4,4 +4,12 @@ Changes:
 - Scaled up grid card font sizes (Titles to text-sm, authors to text-xs, stats to text-[11px])
 - Micro-adjusted card height to 155px to ensure no text overflows or clipping occurs
 
+Version: 5.2.0
+Changes:
+- Incremented semantic version number to 5.2.0
+- Made all Detailed List View columns (except Action) fully interactive and sortable
+- Added active visual sort chevron indicators next to column headers
+- Synchronized direct column header clicks with the main sorting dropdown selection
+- Expanded sorting algorithm to support bidirectional field sorting (Title, Author, Narrator, Rating, Length)
+
 
