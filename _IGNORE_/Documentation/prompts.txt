@@ -170,5 +170,15 @@ Output: LibraryView_v5_7_0.html
 NOTE: My intention was to just create a simple image and include that. Gemini went ahead and just created it as an SVG.
 
 
+Prompt 16:
+    - My Thinking: Category pills were overlapping the title pills. And long title pills could extend past the bottom of the page.
+    - Prompt: "If category pills are taller than the card, make the card automatically grow vertically."
+AI Response:
+    - Swapped out absolute height values (h-[195px] and h-[120px]) for Tailwind's dynamic minimum height utilities (min-h-[195px] h-auto and min-h-[120px] h-auto) to support expanding lists.
+        - Incremented semantic version number to 5.8.0
+        - Converted fixed card height 'h-[195px]' to responsive 'min-h-[195px] h-auto'
+        - Converted top cover block height 'h-[120px]' to responsive 'min-h-[120px] h-auto' to allow cards to automatically grow vertically if category pills wrap extensively
+Output: LibraryView_v5_8_0.html
+NOTE: I thought this was already done, but something got lost somewhere.
 
 
