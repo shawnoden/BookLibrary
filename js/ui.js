@@ -19,6 +19,9 @@ window.AudiobookApp.ui = {
                         const coverSrc = target.getAttribute('data-lazy-cover');
                         if (coverSrc) {
                             target.style.backgroundImage = `url('${coverSrc}')`;
+                            target.style.backgroundSize = 'cover';
+                            target.style.backgroundPosition = 'center';
+                            target.style.backgroundRepeat = 'no-repeat';
                         }
                         observer.unobserve(target);
                     }
@@ -327,8 +330,8 @@ window.AudiobookApp.ui = {
             lazyBgAttribute = `data-lazy-cover="${imgPath}"`;
         }
 
-        const overlayClass = book.backgroundImage 
-            ? "absolute inset-0 bg-slate-950/45 group-hover:bg-slate-950/20 transition-colors" 
+        const overlayClass = book.backgroundImage
+            ? "absolute inset-0 bg-slate-950/45 group-hover:bg-slate-950/20 transition-colors"
             : "absolute inset-0 bg-slate-950/10 group-hover:bg-slate-950/0 transition-colors";
 
         const catBadgeClass = "text-[8px] font-extrabold text-white bg-white/20 border border-white/20 px-1.5 py-0.5 rounded backdrop-blur-sm tracking-wider uppercase truncate max-w-full cursor-help";
@@ -337,12 +340,12 @@ window.AudiobookApp.ui = {
             ? "inline-block text-[13px] font-bold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full"
             : "inline-block text-[13px] font-bold text-white/95 bg-brand-500/50 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full";
 
-        const categoriesHtml = book.categories 
+        const categoriesHtml = book.categories
             ? book.categories.split(';').map(c => `<span class="${catBadgeClass}" title="${c.trim()}">${c.trim()}</span>`).join(' ')
             : `<span class="${catBadgeClass}">AUDIOBOOK</span>`;
 
         card.innerHTML = `
-            <div class="min-h-[120px] h-auto bg-gradient-to-br ${style.gradient} relative p-2.5 flex flex-col justify-between shrink-0" ${lazyBgAttribute} id="card-cover-${bookId}">
+            <div class="min-h-[120px] h-auto bg-gradient-to-br ${style.gradient} bg-cover bg-center bg-no-repeat relative p-2.5 flex flex-col justify-between shrink-0" ${lazyBgAttribute} id="card-cover-${bookId}">
                 <div class="${overlayClass}"></div>
                 <div class="absolute -right-6 -bottom-6 w-16 h-16 bg-white/5 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500"></div>
 
@@ -422,7 +425,7 @@ window.AudiobookApp.ui = {
 
         const bookId = utils.getBookId(book);
         row.setAttribute('data-book-id', bookId);
-        
+
         const isListened = state.listenedSet.has(bookId);
         const progressPercentage = state.playbackProgressMap[bookId] || 0;
 
