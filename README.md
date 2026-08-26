@@ -10,6 +10,6 @@ Open [generator.html](generator.html) in a browser and choose the folder contain
 
 JSON metadata can be a sidecar object such as `Book Name.json` beside `Book Name.mp3`, a metadata object anywhere in the same audiobook folder, or an array / `{ "books": [] }` collection with records matched by `title`, `bookFile`, `file`, or `filename`. A matching JSON value takes precedence over the corresponding MP3 tag; missing JSON fields keep the MP3-derived value.
 
-Audible `.metadata.json` files are supported. The generator extracts author and narrator names, publisher, description, publication date, runtime, ASIN, cover image, ratings, and category ladder names from the Audible-specific nested fields.
+Audible `.metadata.json` files are supported. The generator extracts author and narrator names, publisher, description, publication date, runtime, ASIN, cover image, ratings, and category ladder names from the Audible-specific nested fields. A local image in the audiobook folder takes precedence over the remote Audible cover URL; matching names, `cover`, `front`, `folder`, and `jacket` images are preferred.
 
 The browser cannot reliably determine audiobook ratings or narrator names from MP3 metadata. Those fields default to empty or zero values and can be edited in the generated JSON when needed.

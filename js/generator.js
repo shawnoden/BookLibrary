@@ -28,6 +28,7 @@
     async function processFiles(files) {
         const mp3Files = files.filter(file => file.name.toLowerCase().endsWith('.mp3'));
         const jsonFiles = files.filter(file => file.name.toLowerCase().endsWith('.json'));
+        const imageFiles = files.filter(file => /\.(jpg|jpeg|png|webp|gif)$/i.test(file.name));
         if (!mp3Files.length) {
             status.textContent = 'No MP3 files found in that selection';
             return;
@@ -39,7 +40,7 @@
         const metadataFiles = await readMetadataFiles(jsonFiles);
         status.textContent = `Reading ${mp3Files.length} MP3 file${mp3Files.length === 1 ? '' : 's'}${jsonFiles.length ? ` and ${jsonFiles.length} JSON file${jsonFiles.length === 1 ? '' : 's'}` : ''}...`;
         for (const file of mp3Files) {
-            const result = await readFileRecord(file, metadataFiles);
+            const result = await readFileRecord(file, metadataFiles, imageFiles);
             records.push(result.record);
             renderRow(result.record, result.error);
         }
@@ -84,7 +85,7 @@
         });
     }
 
-    async function readFileRecord(file, metadataFiles) {
+    async function readFileRecord(file, metadataFiles, imageFiles) {
         const [{ tags, error }, duration] = await Promise.all([readTags(file), getDuration(file)]);
         const sidecar = findMetadata(file, metadataFiles);
         const title = textValue(tags.title) || file.name.replace(/\.mp3$/i, '');
@@ -115,8 +116,29 @@
             mergeMetadata(record, sidecar);
             record._metadataMatched = true;
         }
+        const localImage = findLocalImage(file, imageFiles);
+        if (localImage) record.backgroundImage = localImage;
         if (!record.asin) delete record.asin;
+        if (!record.backgroundImage) delete record.backgroundImage;
         return { record, error: error && !sidecar ? error : '' };
+    }
+
+    function findLocalImage(audioFile, imageFiles) {
+        const audioPath = normalizePath(audioFile.webkitRelativePath || audioFile.name);
+        const audioDirectory = audioPath.includes('/') ? audioPath.slice(0, audioPath.lastIndexOf('/')) : '';
+        const audioBase = audioFile.name.replace(/\.mp3$/i, '').toLowerCase();
+        const inDirectory = imageFiles.filter(file => {
+            const imagePath = normalizePath(file.webkitRelativePath || file.name);
+            return imagePath.slice(0, imagePath.lastIndexOf('/')) === audioDirectory;
+        });
+        const sameName = inDirectory.find(file => file.name.replace(/\.[^.]+$/, '').toLowerCase() === audioBase);
+        if (sameName) return sameName.webkitRelativePath || sameName.name;
+
+        const preferredNames = ['cover', 'coverart', 'front', 'folder', 'jacket'];
+        const preferredImage = inDirectory.find(file => preferredNames.includes(file.name.replace(/\.[^.]+$/, '').toLowerCase()));
+        if (preferredImage) return preferredImage.webkitRelativePath || preferredImage.name;
+        if (inDirectory.length === 1) return inDirectory[0].webkitRelativePath || inDirectory[0].name;
+        return '';
     }
 
     function findMetadata(audioFile, metadataFiles) {
