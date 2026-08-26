@@ -182,3 +182,15 @@ Output: LibraryView_v5_8_0.html
 NOTE: I thought this was already done, but something got lost somewhere.
 
 
+Prompt 17:
+    - My Thinking: Some of the categories are longer than than the pill. They were truncating too short, even if there was room in the card.
+    - Prompt: "Stop truncating category pills early unless they exceed the entire width of the card."
+AI Response:
+    - Altered the maximum pill width variable within createCompactGridCard from max-w-[70%] to max-w-full, allowing tags to expand fully and wrap gracefully.
+        - Incremented semantic version number to 5.9.0
+        - Updated 'catBadgeClass' inside 'createCompactGridCard' to use 'max-w-full' instead of 'max-w-[70%]' so category pills only truncate if they are too long for the entire available card container space
+Output: LibraryView_v5_9_0.html
+NOTE: Gemini keeps updating comments in the code. Nice.
+
+
+
