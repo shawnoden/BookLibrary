@@ -17,8 +17,9 @@ window.AudiobookApp.ui = {
                     if (entry.isIntersecting) {
                         const target = entry.target;
                         const coverSrc = target.getAttribute('data-lazy-cover');
-                        if (coverSrc) {
-                            target.style.backgroundImage = `url('${coverSrc}')`;
+                        const safeCoverSrc = this.getSafeImagePath(coverSrc);
+                        if (safeCoverSrc) {
+                            target.style.backgroundImage = `url("${safeCoverSrc}")`;
                             target.style.backgroundSize = 'cover';
                             target.style.backgroundPosition = 'center';
                             target.style.backgroundRepeat = 'no-repeat';
@@ -111,7 +112,9 @@ window.AudiobookApp.ui = {
     createBadge: function(text, onRemove) {
         const span = document.createElement('span');
         span.className = "inline-flex items-center gap-1 bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-md text-[11px]";
-        span.innerHTML = `<span>${text}</span>`;
+        const label = document.createElement('span');
+        label.textContent = text;
+        span.appendChild(label);
 
         const closeBtn = document.createElement('button');
         closeBtn.className = "text-slate-500 hover:text-red-400 ml-0.5 font-bold transition-colors";
@@ -223,7 +226,7 @@ window.AudiobookApp.ui = {
                 headerDiv.className = "col-span-full border-b border-slate-800 pb-1.5 mt-6 mb-2 flex justify-between items-end";
                 headerDiv.innerHTML = `
                     <h3 class="text-xs font-bold text-brand-500 flex items-center gap-1.5 tracking-wider uppercase">
-                        <i data-lucide="layers" class="w-4 h-4"></i> ${sName}
+                        <i data-lucide="layers" class="w-4 h-4"></i> ${this.escapeHtml(sName)}
                     </h3>
                     <span class="text-[10px] text-slate-500 font-mono">${books.length} Volumes</span>
                 `;
@@ -259,7 +262,7 @@ window.AudiobookApp.ui = {
                 headerRow.innerHTML = `
                     <td colspan="6" class="p-3 font-semibold border-y border-slate-800 text-xs text-brand-500">
                         <div class="flex items-center justify-between">
-                            <span class="flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4"></i> ${sName}</span>
+                            <span class="flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4"></i> ${this.escapeHtml(sName)}</span>
                             <span class="text-[10px] text-slate-500 font-normal font-mono">${books.length} Volumes</span>
                         </div>
                     </td>
@@ -323,25 +326,26 @@ window.AudiobookApp.ui = {
 
         let lazyBgAttribute = '';
         if (book.backgroundImage) {
-            let imgPath = book.backgroundImage;
-            if (!imgPath.startsWith('backgroundImage/') && !imgPath.startsWith('http://') && !imgPath.startsWith('https://') && !imgPath.startsWith('./')) {
+            let imgPath = this.getSafeImagePath(book.backgroundImage);
+            if (!imgPath) imgPath = '';
+            if (imgPath && !imgPath.startsWith('backgroundImage/') && !imgPath.startsWith('http://') && !imgPath.startsWith('https://') && !imgPath.startsWith('./')) {
                 imgPath = 'backgroundImage/' + imgPath;
             }
-            lazyBgAttribute = `data-lazy-cover="${imgPath}"`;
+            if (imgPath) lazyBgAttribute = `data-lazy-cover="${this.escapeHtml(imgPath)}"`;
         }
 
-        const overlayClass = book.backgroundImage
+        const overlayClass = lazyBgAttribute
             ? "absolute inset-0 bg-slate-950/45 group-hover:bg-slate-950/20 transition-colors"
             : "absolute inset-0 bg-slate-950/10 group-hover:bg-slate-950/0 transition-colors";
 
         const catBadgeClass = "text-[8px] font-extrabold text-white bg-white/20 border border-white/20 px-1.5 py-0.5 rounded backdrop-blur-sm tracking-wider uppercase truncate max-w-full cursor-help";
 
-        const seriesBadgeClass = book.backgroundImage
+        const seriesBadgeClass = lazyBgAttribute
             ? "inline-block text-[13px] font-bold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full"
             : "inline-block text-[13px] font-bold text-white/95 bg-brand-500/50 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full";
 
         const categoriesHtml = book.categories
-            ? book.categories.split(';').map(c => `<span class="${catBadgeClass}" title="${c.trim()}">${c.trim()}</span>`).join(' ')
+            ? book.categories.split(';').map(c => `<span class="${catBadgeClass}" title="${this.escapeHtml(c.trim())}">${this.escapeHtml(c.trim())}</span>`).join(' ')
             : `<span class="${catBadgeClass}">AUDIOBOOK</span>`;
 
         card.innerHTML = `
@@ -365,16 +369,16 @@ window.AudiobookApp.ui = {
                 </div>
 
                 <div class="z-10 text-left w-full mt-auto">
-                    ${book.series ? `<span class="${seriesBadgeClass}">${book.series}</span> <span class="${seriesBadgeClass}">Vol. ${volNum}</span>` : ''}
+                    ${book.series ? `<span class="${seriesBadgeClass}">${this.escapeHtml(book.series)}</span> <span class="${seriesBadgeClass}">Vol. ${this.escapeHtml(volNum)}</span>` : ''}
                 </div>
             </div>
 
             <div class="p-2.5 flex-1 flex flex-col justify-between bg-slate-900/40 relative">
                 <div class="space-y-0.5">
-                    <h3 class="text-sm font-bold text-slate-100 group-hover:text-brand-500 transition-colors leading-tight line-clamp-1" title="${book.title}">
-                        ${book.title}
+                    <h3 class="text-sm font-bold text-slate-100 group-hover:text-brand-500 transition-colors leading-tight line-clamp-1" title="${this.escapeHtml(book.title)}">
+                        ${this.escapeHtml(book.title)}
                     </h3>
-                    <p class="text-xs text-slate-400 font-medium truncate">By ${book.authors}</p>
+                    <p class="text-xs text-slate-400 font-medium truncate">By ${this.escapeHtml(book.authors)}</p>
                 </div>
 
                 <div class="mt-2.5 space-y-2">
@@ -442,16 +446,16 @@ window.AudiobookApp.ui = {
                     <div class="w-1.5 h-6 rounded-full bg-gradient-to-b ${utils.getCategoryStyle(book.categories).gradient} shrink-0"></div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="font-semibold text-slate-100 block max-w-xs sm:max-w-md truncate text-xs sm:text-sm">${book.title}</span>
+                            <span class="font-semibold text-slate-100 block max-w-xs sm:max-w-md truncate text-xs sm:text-sm">${this.escapeHtml(book.title)}</span>
                             ${isListened ? `
                                 <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 text-[9px] rounded-full font-bold">Listened</span>
                             ` : ''}
                         </div>
-                        ${book.series ? `<span class="text-[9px] text-brand-500 font-medium block truncate">${book.series} #${book.seriesOrder ? book.seriesOrder.split(':')[0].trim() : ''}</span>` : ''}
+                        ${book.series ? `<span class="text-[9px] text-brand-500 font-medium block truncate">${this.escapeHtml(book.series)} #${this.escapeHtml(book.seriesOrder ? book.seriesOrder.split(':')[0].trim() : '')}</span>` : ''}
                     </div>
                 </div>
             </td>
-            <td class="p-3 text-slate-400 max-w-[120px] truncate">By ${book.authors}</td>
+            <td class="p-3 text-slate-400 max-w-[120px] truncate">By ${this.escapeHtml(book.authors)}</td>
             <td class="p-3">
                 <!-- Custom embedded dynamic progress bar -->
                 <div class="flex items-center gap-2.5 min-w-[100px]" title="${progressPercentage}% completed">
@@ -566,11 +570,11 @@ window.AudiobookApp.ui = {
 
         let coverImgStyle = '';
         if (book.backgroundImage) {
-            let imgPath = book.backgroundImage;
-            if (!imgPath.startsWith('backgroundImage/')) {
+            let imgPath = this.getSafeImagePath(book.backgroundImage);
+            if (imgPath && !imgPath.startsWith('backgroundImage/') && !imgPath.startsWith('http://') && !imgPath.startsWith('https://') && !imgPath.startsWith('./')) {
                 imgPath = 'backgroundImage/' + imgPath;
             }
-            coverImgStyle = `background-image: url('${imgPath}'); background-size: cover; background-position: center;`;
+            if (imgPath) coverImgStyle = `background-image: url("${imgPath}"); background-size: cover; background-position: center;`;
         }
         coverArt.style = coverImgStyle;
 
@@ -665,7 +669,7 @@ window.AudiobookApp.ui = {
         document.getElementById('modal-rating-story').textContent = book.ratingStory ? book.ratingStory.toFixed(2) : '--';
         document.getElementById('modal-rating-perf').textContent = book.ratingPerformance ? book.ratingPerformance.toFixed(2) : '--';
 
-        document.getElementById('modal-description').innerHTML = book.description || '<p class="text-slate-500 italic">No publisher description sync available.</p>';
+        document.getElementById('modal-description').innerHTML = this.sanitizeDescription(book.description) || '<p class="text-slate-500 italic">No publisher description sync available.</p>';
 
         modal.classList.remove('pointer-events-none');
         modal.classList.add('opacity-100');
@@ -683,6 +687,49 @@ window.AudiobookApp.ui = {
         modal.classList.add('pointer-events-none');
         card.classList.add('scale-95');
         card.classList.remove('scale-100');
+    },
+
+    escapeHtml: function(value) {
+        return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    },
+
+    getSafeImagePath: function(value) {
+        const path = String(value ?? '').trim();
+        if (!path || /["'()\\\r\n]/.test(path)) return '';
+        if (/^https?:\/\//i.test(path) || path.startsWith('./') || path.startsWith('backgroundImage/')) return path;
+        return /^[^:/?#]+(?:\/[^:/?#]+)*$/.test(path) ? path : '';
+    },
+
+    sanitizeDescription: function(value) {
+        if (!value) return '';
+        const template = document.createElement('template');
+        template.innerHTML = String(value);
+        const allowedTags = new Set(['P', 'B', 'STRONG', 'I', 'EM', 'BR', 'UL', 'OL', 'LI', 'A']);
+        const cleanChildren = (parent) => {
+            const fragment = document.createDocumentFragment();
+            Array.from(parent.childNodes).forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    fragment.appendChild(document.createTextNode(node.nodeValue));
+                } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE') {
+                    if (!allowedTags.has(node.tagName)) {
+                        fragment.appendChild(cleanChildren(node));
+                        return;
+                    }
+                    const clean = document.createElement(node.tagName.toLowerCase());
+                    if (node.tagName === 'A' && /^https?:$/i.test(node.protocol)) {
+                        clean.href = node.href;
+                        clean.target = '_blank';
+                        clean.rel = 'noopener noreferrer';
+                    }
+                    clean.appendChild(cleanChildren(node));
+                    fragment.appendChild(clean);
+                }
+            });
+            return fragment;
+        };
+        const container = document.createElement('div');
+        container.appendChild(cleanChildren(template.content));
+        return container.innerHTML;
     },
 
     setLayout: function(layout) {

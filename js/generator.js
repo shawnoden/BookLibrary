@@ -9,6 +9,7 @@
     const downloadButton = document.getElementById('download-btn');
     const metadataSummary = document.getElementById('metadata-summary');
     let records = [];
+    let selectionRoot = '';
 
     lucide.createIcons();
 
@@ -28,7 +29,7 @@
     async function processFiles(files) {
         const mp3Files = files.filter(file => file.name.toLowerCase().endsWith('.mp3'));
         const jsonFiles = files.filter(file => file.name.toLowerCase().endsWith('.json'));
-        const imageFiles = files.filter(file => /\.(jpg|jpeg|png|webp|gif)$/i.test(file.name));
+        const imageFiles = files.filter(file => /\.(jpg|jpeg|png|webp|gif|avif|svg)$/i.test(file.name));
         if (!mp3Files.length) {
             status.textContent = 'No MP3 files found in that selection';
             return;
@@ -37,10 +38,11 @@
         resultsBody.innerHTML = '';
         resultsPanel.classList.remove('hidden');
         downloadButton.disabled = true;
+        selectionRoot = getSelectionRoot([...mp3Files, ...jsonFiles, ...imageFiles]);
         const metadataFiles = await readMetadataFiles(jsonFiles);
         status.textContent = `Reading ${mp3Files.length} MP3 file${mp3Files.length === 1 ? '' : 's'}${jsonFiles.length ? ` and ${jsonFiles.length} JSON file${jsonFiles.length === 1 ? '' : 's'}` : ''}...`;
         for (const file of mp3Files) {
-            const result = await readFileRecord(file, metadataFiles, imageFiles);
+            const result = await readFileRecord(file, metadataFiles, imageFiles, mp3Files);
             records.push(result.record);
             renderRow(result.record, result.error);
         }
@@ -48,8 +50,9 @@
         downloadButton.disabled = records.length === 0;
         status.textContent = `Finished: ${records.length} record${records.length === 1 ? '' : 's'} ready`;
         const matchedMetadata = records.filter(record => record._metadataMatched).length;
+        const invalidMetadata = metadataFiles.filter(item => item.error).length;
         records.forEach(record => delete record._metadataMatched);
-        metadataSummary.textContent = `${matchedMetadata} record${matchedMetadata === 1 ? '' : 's'} enriched from adjacent JSON. Ratings default to 0 when unavailable.`;
+        metadataSummary.textContent = `${matchedMetadata} record${matchedMetadata === 1 ? '' : 's'} enriched from adjacent JSON. ${invalidMetadata ? `${invalidMetadata} JSON file${invalidMetadata === 1 ? '' : 's'} could not be parsed. ` : ''}Ratings default to 0 when unavailable.`;
     }
 
     async function readMetadataFiles(files) {
@@ -85,14 +88,14 @@
         });
     }
 
-    async function readFileRecord(file, metadataFiles, imageFiles) {
+    async function readFileRecord(file, metadataFiles, imageFiles, audioFiles) {
         const [{ tags, error }, duration] = await Promise.all([readTags(file), getDuration(file)]);
-        const sidecar = findMetadata(file, metadataFiles);
+        const sidecar = findMetadata(file, metadataFiles, audioFiles);
         const title = textValue(tags.title) || file.name.replace(/\.mp3$/i, '');
         const author = textValue(tags.albumartist) || textValue(tags.artist);
         const narrator = textValue(tags.narrator) || textValue(tags.albumartist) || '';
         const year = textValue(tags.year).slice(0, 10);
-        const relativePath = file.webkitRelativePath || file.name;
+        const relativePath = relativeFilePath(file);
         const record = {
                 title,
                 subtitle: '',
@@ -124,30 +127,30 @@
     }
 
     function findLocalImage(audioFile, imageFiles) {
-        const audioPath = normalizePath(audioFile.webkitRelativePath || audioFile.name);
+        const audioPath = normalizePath(relativeFilePath(audioFile));
         const audioDirectory = audioPath.includes('/') ? audioPath.slice(0, audioPath.lastIndexOf('/')) : '';
         const audioBase = audioFile.name.replace(/\.mp3$/i, '').toLowerCase();
         const inDirectory = imageFiles.filter(file => {
-            const imagePath = normalizePath(file.webkitRelativePath || file.name);
+            const imagePath = normalizePath(relativeFilePath(file));
             return imagePath.slice(0, imagePath.lastIndexOf('/')) === audioDirectory;
         });
         const sameName = inDirectory.find(file => file.name.replace(/\.[^.]+$/, '').toLowerCase() === audioBase);
-        if (sameName) return sameName.webkitRelativePath || sameName.name;
+        if (sameName) return relativeFilePath(sameName);
 
         const preferredNames = ['cover', 'coverart', 'front', 'folder', 'jacket'];
         const preferredImage = inDirectory.find(file => preferredNames.includes(file.name.replace(/\.[^.]+$/, '').toLowerCase()));
-        if (preferredImage) return preferredImage.webkitRelativePath || preferredImage.name;
-        if (inDirectory.length === 1) return inDirectory[0].webkitRelativePath || inDirectory[0].name;
+        if (preferredImage) return relativeFilePath(preferredImage);
+        if (inDirectory.length === 1) return relativeFilePath(inDirectory[0]);
         return '';
     }
 
-    function findMetadata(audioFile, metadataFiles) {
-        const audioPath = normalizePath(audioFile.webkitRelativePath || audioFile.name);
+    function findMetadata(audioFile, metadataFiles, audioFiles) {
+        const audioPath = normalizePath(relativeFilePath(audioFile));
         const audioDirectory = audioPath.includes('/') ? audioPath.slice(0, audioPath.lastIndexOf('/')) : '';
         const audioBase = audioFile.name.replace(/\.mp3$/i, '').toLowerCase();
         const candidates = metadataFiles.filter(item => item.value && typeof item.value === 'object');
         const exactSidecar = candidates.find(item => {
-            const jsonPath = normalizePath(item.file.webkitRelativePath || item.file.name);
+            const jsonPath = normalizePath(relativeFilePath(item.file));
             const jsonBase = item.file.name.replace(/\.json$/i, '').replace(/\.metadata$/i, '').toLowerCase();
             return jsonPath.slice(0, jsonPath.lastIndexOf('/')) === audioDirectory && jsonBase === audioBase;
         });
@@ -155,12 +158,16 @@
             return selectMetadataRecord(exactSidecar.value, audioFile) || (isMetadataObject(exactSidecar.value) ? exactSidecar.value : null);
         }
 
-        const matchingRecord = candidates.map(item => selectMetadataRecord(item.value, audioFile)).find(Boolean);
-        if (matchingRecord) return matchingRecord;
+        const matchingRecords = candidates.map(item => selectMetadataRecord(item.value, audioFile)).filter(Boolean);
+        if (matchingRecords.length === 1) return matchingRecords[0];
 
         const directoryMetadata = candidates.find(item => {
-            const jsonPath = normalizePath(item.file.webkitRelativePath || item.file.name);
-            return jsonPath.slice(0, jsonPath.lastIndexOf('/')) === audioDirectory && isMetadataObject(item.value);
+            const jsonPath = normalizePath(relativeFilePath(item.file));
+            const sameDirectoryAudio = audioFiles.filter(file => {
+                const filePath = normalizePath(relativeFilePath(file));
+                return filePath.slice(0, filePath.lastIndexOf('/')) === audioDirectory;
+            });
+            return jsonPath.slice(0, jsonPath.lastIndexOf('/')) === audioDirectory && isMetadataObject(item.value) && sameDirectoryAudio.length === 1;
         });
         return directoryMetadata ? directoryMetadata.value : null;
     }
@@ -171,12 +178,15 @@
 
     function selectMetadataRecord(value, audioFile) {
         const recordsToCheck = Array.isArray(value) ? value : Array.isArray(value.books) ? value.books : [];
+        const audioPath = normalizePath(relativeFilePath(audioFile));
         const audioName = audioFile.name.toLowerCase();
         return recordsToCheck.find(item => {
             if (!item || typeof item !== 'object') return false;
             const fileName = textValue(item.bookFile || item.file || item.filename || item.fileName).toLowerCase();
             const title = textValue(item.title).toLowerCase();
-            return fileName.endsWith(audioName) || title === audioFile.name.replace(/\.mp3$/i, '').toLowerCase();
+            const normalizedFileName = normalizePath(fileName);
+            const fileMatches = normalizedFileName === audioPath || (!normalizedFileName.includes('/') && normalizedFileName === audioName);
+            return fileMatches || title === audioFile.name.replace(/\.mp3$/i, '').toLowerCase();
         }) || null;
     }
 
@@ -193,7 +203,7 @@
             const target = aliases[key] || key;
             if (!(target in record) || value === null || value === undefined || value === '') return;
             if (target === 'length') {
-                record[target] = durationInMinutes(value, record.length);
+                record[target] = key === 'runtime_length_min' ? minutesValue(value, record.length) : durationInMinutes(value, record.length);
             } else if (['ratingOverall', 'ratingPerformance', 'ratingStory'].includes(target)) {
                 record[target] = Number(value) || record[target];
             } else {
@@ -232,7 +242,7 @@
 
     function categoryValue(ladders) {
         if (!Array.isArray(ladders)) return textValue(ladders);
-        const names = ladders.flatMap(item => Array.isArray(item.ladder) ? item.ladder : [])
+        const names = ladders.map(item => Array.isArray(item.ladder) ? item.ladder[item.ladder.length - 1] : null)
             .map(category => typeof category === 'object' ? category.name : category)
             .filter(Boolean);
         return [...new Set(names)].join('; ');
@@ -242,6 +252,21 @@
         const numericValue = Number(value);
         if (!Number.isFinite(numericValue) || numericValue <= 0) return fallback;
         return numericValue > 100 ? Math.round(numericValue / 60) : Math.round(numericValue);
+    }
+
+    function minutesValue(value, fallback) {
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) && numericValue > 0 ? Math.round(numericValue) : fallback;
+    }
+
+    function getSelectionRoot(files) {
+        const firstPath = files.map(file => file.webkitRelativePath).find(Boolean);
+        return firstPath ? firstPath.split('/')[0] : '';
+    }
+
+    function relativeFilePath(file) {
+        const path = file.webkitRelativePath || file.name;
+        return selectionRoot && path.startsWith(`${selectionRoot}/`) ? path.slice(selectionRoot.length + 1) : path;
     }
 
     function normalizePath(value) {
