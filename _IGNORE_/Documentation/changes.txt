@@ -29,4 +29,10 @@ Changes:
   theme (backdrop-blur, translucent white background, and borders) even when
   a local book cover (backgroundImage) is present.
 
+Version: 5.5.0
+Changes:
+- Incremented semantic version number to 5.5.0
+- Increased card top cover height by 50% (from 80px to 120px) and adjusted total grid card height to 195px.
+- Standardized category pills wrapping behavior across cards with background images and standard gradients.
+- Removed categories overlay badge from the dynamic cover visualizer inside the modal.
 

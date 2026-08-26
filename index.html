@@ -3,12 +3,12 @@
 <head>
     <!--
         Audible Archive Dashboard
-        Version: 5.4.0
+        Version: 5.5.0
         Changes:
-        - Incremented semantic version number to 5.4.0
-        - Standardized category pills style: now always renders using the glassmorphic
-          theme (backdrop-blur, translucent white background, and borders) even when
-          a local book cover (backgroundImage) is present.
+        - Incremented semantic version number to 5.5.0
+        - Increased card top cover height by 50% (from 80px to 120px) and adjusted total grid card height to 195px.
+        - Standardized category pills wrapping behavior across cards with background images and standard gradients.
+        - Removed categories overlay badge from the dynamic cover visualizer inside the modal.
     -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -305,10 +305,9 @@
 
                 <!-- Core Details Grid -->
                 <div class="flex flex-col md:flex-row gap-5">
-                    <!-- Dynamic Cover Visualizer -->
+                    <!-- Dynamic Cover Visualizer (Removed Category Overlays) -->
                     <div id="modal-cover-art" class="w-32 h-32 md:w-40 md:h-40 rounded-xl flex flex-col justify-between p-3.5 shrink-0 shadow-lg text-slate-950">
                         <i data-lucide="book" class="w-7 h-7 opacity-60"></i>
-                        <span class="font-bold text-xs uppercase tracking-wider block text-right" id="modal-cover-cat">SCI-FI</span>
                     </div>
 
                     <!-- Book Metadata & Action Section -->
@@ -683,6 +682,7 @@
             });
         }
 
+        // Color mapper helper
         function getCategoryStyle(catString) {
             if (!catString) return { gradient: categoryGradients.Default, icon: categoryIcons.Default };
             const primaryCat = catString.split(';')[0].trim();
@@ -824,7 +824,7 @@
                 return matchesCategory && matchesNarrator && matchesSearch;
             });
 
-            // Sorting (Upgraded dynamic multidirectional parsing schema)
+            // Sorting
             result.sort((a, b) => {
                 if (currentSort === 'rating_desc') {
                     return (b.ratingOverall || 0) - (a.ratingOverall || 0);
@@ -1086,10 +1086,10 @@
             }
         }
 
-        // Creates compact tactile cover grid card with hybrid cover features
+        // Creates compact tactile cover grid card (Height adjusted to 195px, banner increased by 50% to h-[120px])
         function createCompactGridCard(book) {
             const card = document.createElement('div');
-            card.className = "group bg-slate-900/60 border border-slate-800/80 rounded-lg hover:border-slate-700/80 hover:bg-slate-900 transition-all duration-300 shadow-md flex flex-col justify-between overflow-hidden cursor-pointer h-[155px]";
+            card.className = "group bg-slate-900/60 border border-slate-800/80 rounded-lg hover:border-slate-700/80 hover:bg-slate-900 transition-all duration-300 shadow-md flex flex-col justify-between overflow-hidden cursor-pointer h-[195px]";
             card.onclick = () => openModal(book);
 
             const style = getCategoryStyle(book.categories);
@@ -1107,7 +1107,6 @@
 
             if (hasImage) {
                 let imgPath = book.backgroundImage;
-                // If it doesn't already reference folder pathing, prepend it locally
                 if (!imgPath.startsWith('backgroundImage/') && !imgPath.startsWith('http://') && !imgPath.startsWith('https://') && !imgPath.startsWith('./')) {
                     imgPath = 'backgroundImage/' + imgPath;
                 }
@@ -1116,7 +1115,7 @@
 
             // Conditional overlay style based on image presence
             const overlayClass = hasImage
-                ? "absolute inset-0 bg-slate-950/40 group-hover:bg-slate-950/20 transition-colors"
+                ? "absolute inset-0 bg-slate-950/45 group-hover:bg-slate-950/20 transition-colors"
                 : "absolute inset-0 bg-slate-950/10 group-hover:bg-slate-950/0 transition-colors";
 
             // Uniform high-contrast glassmorphic capsule class for category tags
@@ -1127,24 +1126,25 @@
                 ? "inline-block text-[13px] font-bold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full"
                 : "inline-block text-[13px] font-bold text-white/95 bg-brand-500/50 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full";
 
-            // Map and parse all categories dynamically inside their own distinct pills
+            // Map all categories inside standard high-contrast glassmorphic tags
             const categoriesHtml = book.categories
-                ? book.categories.split(';').map(c => `<span class="${catBadgeClass} shrink-0">${c.trim()}</span>`).join(' ')
-                : `<span class="${catBadgeClass} shrink-0">STORY</span>`;
+                ? book.categories.split(';').map(c => `<span class="${catBadgeClass}">${c.trim()}</span>`).join(' ')
+                : `<span class="${catBadgeClass}">STORY</span>`;
 
             card.innerHTML = `
-                <!-- Dynamic gradient or image tactile cover block (h-20 for vertical cover styling) -->
-                <div class="h-20 bg-gradient-to-br ${style.gradient} relative p-2 flex flex-col justify-between overflow-hidden shrink-0" style="${coverStyle}">
+                <!-- Dynamic gradient or image cover block (h-[120px] for expanded 50% larger presentation) -->
+                <div class="h-[120px] bg-gradient-to-br ${style.gradient} relative p-2.5 flex flex-col justify-between overflow-hidden shrink-0" style="${coverStyle}">
                     <!-- Dark translucent overlay to guarantee typography and icon readability -->
                     <div class="${overlayClass}"></div>
                     <div class="absolute -right-6 -bottom-6 w-16 h-16 bg-white/5 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500"></div>
 
-                    <div class="flex justify-between items-center z-10 w-full gap-1">
-                        <div class="flex flex-wrap gap-1 max-w-[80%] overflow-hidden">
+                    <!-- Categories Row with absolute wrapping and uniform separation space -->
+                    <div class="flex justify-between items-start z-10 w-full gap-2">
+                        <div class="flex flex-wrap gap-1.5 max-w-[85%]">
                             ${categoriesHtml}
                         </div>
                         <!-- Light white icon with drop shadow -->
-                        <i data-lucide="${style.icon}" class="w-3.5 h-3.5 text-white drop-shadow-md shrink-0"></i>
+                        <i data-lucide="${style.icon}" class="w-3.5 h-3.5 text-white drop-shadow-md shrink-0 mt-0.5"></i>
                     </div>
 
                     <!-- Series details with light, high-contrast Slate Capsule -->
@@ -1216,7 +1216,7 @@
             return row;
         }
 
-        // Cinematic Modal Control Functions
+        // Cinematic Modal Control Functions (Removed Category Badge Overlay)
         function openModal(book) {
             const modal = document.getElementById('detail-modal');
             const card = document.getElementById('modal-card');
@@ -1236,13 +1236,11 @@
             }
             coverArt.style = coverImgStyle;
 
+            // Render modal cover art visualizer without category overlays
             coverArt.innerHTML = `
                 <div class="absolute inset-0 bg-slate-950/20"></div>
-                <div class="z-10 flex flex-col justify-between h-full w-full">
+                <div class="z-10 flex flex-col justify-start h-full w-full">
                     <i data-lucide="${style.icon}" class="w-7 h-7 text-white drop-shadow"></i>
-                    <span class="font-extrabold text-[10px] uppercase tracking-wider block text-right text-white bg-slate-950/50 px-1.5 py-0.5 rounded w-max ml-auto backdrop-blur-sm" id="modal-cover-cat">
-                        ${book.categories ? book.categories.split(';')[0] : 'STORY'}
-                    </span>
                 </div>
             `;
 
