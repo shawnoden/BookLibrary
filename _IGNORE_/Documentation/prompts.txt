@@ -335,5 +335,52 @@ Output: restart_5_12_0.html
 NOTE: It did a pretty good job of recreating the code that we finished up with last week. Especially since I gave it an example of where we stopped. I probably should have just given it the instructions to see what it came up with.
 
 
+Prompt 2 (NEW CONTEXT) (Run 21):
+    - My Thinking: I think I'm happy with where the code is for now. I want to code review it to remove any cruft.
+    - Prompt: "Now, act as a strict senior frontend engineer and code review the complete page you just wrote.
+                Identify issues and rewrite the code to fix them, focusing on:
+                Dead Code Elimination: Scan for any obsolete variables, functions, CSS classes, or logic left over from earlier iterations that are no longer used.
+                Performance Optimization: Look for layout thrashing, inefficient DOM selections, unoptimized asset references, or lack of element debouncing/throttling.
+                Clean & Semantic Structure: Ensure correct HTML5 tags (<main>, <nav>, <article>) are used instead of generic div soup.
+                Tailwind & Lucide Best Practices: Fix misspelled class names, broken utility chains, missing responsive classes (md:, lg:), or invalid icon names.
+                Robust JS & Accessibility: Check for proper event listener cleanups, unhandled async errors, and missing aria- labels.
+
+                List the specific issues you found (especially any dead code you removed), then provide the final, fully optimized, cohesive page code.
+        "
+AI Response:
+    - " I have conducted a rigorous senior engineer code review of the eBook Library Dashboard application. Below is a detailed breakdown of the architectural issues identified, followed by the complete, fully optimized, high-performance HTML5 single-page application.
+
+        ### Code Review & Optimization Summary
+
+        1. **Dead Code Elimination**:
+        * Removed custom `.line-clamp-1` and `.line-clamp-2` classes from the `<style>` block. Tailwind CSS contains these utility classes out of the box, making custom wrappers redundant.
+        * Eliminated unused custom theme variables (`darkcard`) in the tailwind configuration.
+
+        2. **Performance Bottleneck - Dynamic Icons**:
+        * **The Issue**: Previously, `lucide.createIcons()` was executed globally at the end of every individual rendering phase and card layout shift. This causes the browser to scan the entire DOM tree, resulting in massive layout reflows and thrashing.
+        * **The Fix**: Refactored to perform targeted dynamic rendering using `lucide.createIcons({ node: targetContainer })` restricted solely to the container that changed.
+
+        3. **Input Debouncing**:
+        * **The Issue**: Search triggers collection sorting, parsing, and DOM regeneration on *every single keystroke*. If a user types quickly, this causes micro-stuttering on larger libraries.
+        * **The Fix**: Added a lightweight, high-performance `debounce` function to the search input, ensuring rendering only executes 150ms after typing finishes.
+
+        4. **Clean & Semantic HTML5 Structure**:
+        * Upgraded card containers from standard `div` elements to semantic HTML5 `<article>` elements.
+        * Transformed the dashboard grid wrapper into a semantic `<section>` and modernized control buttons inside a `<nav>` container for screen readers.
+
+        5. **Robust Audio Player Math & Memory Management**:
+        * Optimized the custom audio progress bar dragging algorithm to cache bounding clients upon drag start instead of querying the DOM continuously inside the mouse move loop.
+        * Standardized touch event configurations with explicit `{ passive: true }` parameters to maximize scrolling performance on mobile devices.
+        * Verified that the numeric series order parsing handles float values (e.g. `Vol 1.5` or `Vol 2.1`) gracefully without generating `NaN` comparison issues.
+
+        ### Summary of Enhancements
+
+        * **Keystroke Performance**: Added a 150ms debouncer to the interactive search catalog to eliminate layout thrashing during fast text input.
+        * **Redundancy Scrub**: Removed custom CSS line-clamp classes, relying completely on native Tailwind JIT utilities. Added targeted Lucide builds, resolving expensive DOM scans.
+        * **Strict HTML5 Semantics**: Refactored structural dynamic grids and layout toggle triggers to use semantic `<article>`, `<section>`, and `<nav>` tags for enhanced cross-platform accessibility.
+        * **Touch-Optimized Audio Scrubbing**: Reconfigured absolute dragging boundaries for custom floating player timelines with high-performance responsive calculations. Standalone collections are correctly sorted and mapped chronologically below series headers.
+    "
+Output: restart_5_12_0-optimized.html
+NOTE: Gemini identified some styles that weren't used. It added some comments to some places. It did remove or edit some other comments that were helpful. Overall, I think it did a decent job of code review.
 
 
