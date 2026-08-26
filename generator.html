@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library JSON Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.7/dist/jsmediatags.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { brand: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' } } } }
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+        body { font-family: 'DM Sans', sans-serif; background: #0b0f19; }
+        .mono { font-family: 'Space Mono', monospace; }
+        .drop-zone { background-image: radial-gradient(rgba(245,158,11,.14) 1px, transparent 1px); background-size: 18px 18px; }
+        .drop-zone.dragging { border-color: #f59e0b; background-color: rgba(245,158,11,.08); }
+    </style>
+</head>
+<body class="min-h-screen text-slate-100">
+    <header class="border-b border-slate-800 bg-slate-900/85 backdrop-blur sticky top-0 z-10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-brand-500 text-slate-950 p-2 rounded-lg"><i data-lucide="file-plus-2" class="w-5 h-5"></i></div>
+                <div><h1 class="font-bold text-white">Library JSON Builder</h1><p class="text-xs text-slate-400">Turn an MP3 folder into dashboard-ready records</p></div>
+            </div>
+            <a href="index.html" class="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white"><i data-lucide="arrow-left" class="w-4 h-4"></i> Library</a>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+        <section class="mb-8 max-w-2xl">
+            <p class="mono text-[10px] uppercase tracking-[.2em] text-brand-500 mb-3">Local-only tool</p>
+            <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-white">Build your catalog from the files you already own.</h2>
+            <p class="text-sm text-slate-400 mt-3 leading-relaxed">Choose a folder of MP3 files. Tags are read in your browser, duration is measured locally, and the finished JSON is downloaded to your computer.</p>
+        </section>
+
+        <section id="drop-zone" class="drop-zone border border-dashed border-slate-700 rounded-xl p-8 sm:p-12 text-center transition-colors">
+            <input id="folder-input" type="file" webkitdirectory directory multiple accept="audio/mpeg,.mp3" aria-label="Choose an MP3 folder" class="hidden">
+            <i data-lucide="folder-open" class="w-10 h-10 text-brand-500 mx-auto mb-4"></i>
+            <h3 class="text-lg font-semibold text-white">Select an MP3 folder</h3>
+            <p class="text-sm text-slate-400 mt-2">Subfolders are included automatically.</p>
+            <button id="choose-folder-btn" class="mt-5 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-500 hover:bg-brand-400 text-slate-950 font-semibold text-sm transition-colors"><i data-lucide="folder-search" class="w-4 h-4"></i> Choose folder</button>
+            <p id="drop-status" class="mono text-[11px] text-slate-500 mt-4">No folder selected</p>
+        </section>
+
+        <section id="results-panel" class="hidden mt-8">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-4">
+                <div><p class="mono text-[10px] uppercase tracking-wider text-slate-500">Ready to export</p><h3 class="text-xl font-bold text-white"><span id="file-count">0</span> MP3 records</h3></div>
+                <button id="download-btn" disabled class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-semibold text-sm transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Download library.json</button>
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/60">
+                <table class="w-full text-left text-xs"><thead class="bg-slate-900 text-slate-500 uppercase tracking-wider"><tr><th class="p-3">Title</th><th class="p-3">Author</th><th class="p-3">Album / Series</th><th class="p-3">Duration</th><th class="p-3">Status</th></tr></thead><tbody id="results-body" class="divide-y divide-slate-800"></tbody></table>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-3">Generated records use a 0 rating, the MP3 year as <span class="mono">datePublished</span>, and the folder-relative path as <span class="mono">bookFile</span>.</p>
+        </section>
+    </main>
+    <script src="js/generator.js"></script>
+</body>
+</html>
