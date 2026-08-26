@@ -1,7 +1,6 @@
 /**
  * Audiobook Library Main Application Entry Point
  * Orchestrates network fetches, event listeners, and live playback synchronization.
- * Serves as the bootstrap driver, registers the dynamic scroll listeners, manages live audio streams, and binds system inputs.
  */
 window.AudiobookApp = window.AudiobookApp || {};
 
@@ -82,7 +81,7 @@ window.AudiobookApp.main = {
                     if (entry.isIntersecting && state.renderedCount < filtered.length) {
                         const spinner = document.getElementById('sentinel-spinner');
                         spinner.classList.remove('hidden');
-                        
+
                         // Render next batch
                         setTimeout(() => {
                             state.renderedCount += state.batchSize;
@@ -105,7 +104,6 @@ window.AudiobookApp.main = {
 
         const playerBar = document.getElementById('floating-audio-player');
         const playBtn = document.getElementById('player-play-btn');
-        const playIcon = document.getElementById('player-play-icon');
         const prevBtn = document.getElementById('player-prev-btn');
         const nextBtn = document.getElementById('player-next-btn');
         const closeBtn = document.getElementById('player-close-btn');
@@ -114,15 +112,22 @@ window.AudiobookApp.main = {
         const currentTimeEl = document.getElementById('player-current-time');
         const durationEl = document.getElementById('player-duration');
 
+        const updatePlayIconUI = () => {
+            const isPaused = this.activeAudio.paused;
+            const iconName = isPaused ? 'play' : 'pause';
+            playBtn.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 fill-slate-950" id="player-play-icon"></i>`;
+            lucide.createIcons({ node: playBtn });
+        };
+
         playBtn.addEventListener('click', () => {
             if (this.activeAudio.paused) {
-                this.activeAudio.play();
-                playIcon.setAttribute('data-lucide', 'pause');
+                this.activeAudio.play()
+                    .then(updatePlayIconUI)
+                    .catch(err => console.error("Playback error:", err));
             } else {
                 this.activeAudio.pause();
-                playIcon.setAttribute('data-lucide', 'play');
+                updatePlayIconUI();
             }
-            lucide.createIcons({ node: playBtn });
         });
 
         // Time updates: updates playback map and synchronizes progress bars
@@ -136,7 +141,7 @@ window.AudiobookApp.main = {
                 // Instantly update local progress map
                 if (state.currentPlayingBook) {
                     state.updatePlaybackProgress(state.currentPlayingBook.asin, percent);
-                    
+
                     // Throttle re-renders during active listening, updating targets dynamically
                     const listRowEl = document.querySelector(`[onclick="window.AudiobookApp.ui.openModal('${state.currentPlayingBook.asin}')"]`);
                     if (listRowEl) {
@@ -166,7 +171,7 @@ window.AudiobookApp.main = {
         progressContainer.addEventListener('mousedown', (e) => {
             this.isDraggingScrub = true;
             const pct = handleScrub(e.clientX);
-            
+
             const onMouseMove = (moveEvent) => {
                 handleScrub(moveEvent.clientX);
             };
@@ -270,7 +275,7 @@ window.AudiobookApp.main = {
 
     initFiltersAndSelectors: function() {
         const state = window.AudiobookApp.state;
-        
+
         // Extract genres dynamically
         const categoriesSet = new Set();
         const narratorsSet = new Set();
@@ -314,7 +319,7 @@ window.AudiobookApp.main = {
         const playerBar = document.getElementById('floating-audio-player');
         const playerTitle = document.getElementById('player-title');
         const playerAuthor = document.getElementById('player-author');
-        const playIcon = document.getElementById('player-play-icon');
+        const playBtn = document.getElementById('player-play-btn');
 
         let filePath = book.bookFile;
         if (!filePath.startsWith('bookFiles/') && !filePath.startsWith('http://') && !filePath.startsWith('https://') && !filePath.startsWith('./')) {
@@ -335,20 +340,23 @@ window.AudiobookApp.main = {
             lucide.createIcons({ node: playerCover });
         }
 
+        const updatePlayIconUI = () => {
+            const isPaused = this.activeAudio.paused;
+            const iconName = isPaused ? 'play' : 'pause';
+            playBtn.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 fill-slate-950" id="player-play-icon"></i>`;
+            lucide.createIcons({ node: playBtn });
+        };
+
         if (this.activeAudio.paused) {
             this.activeAudio.play()
-                .then(() => {
-                    playIcon.setAttribute('data-lucide', 'pause');
-                    lucide.createIcons({ node: document.getElementById('player-play-btn') });
-                })
+                .then(updatePlayIconUI)
                 .catch(err => {
                     console.error("Playback interrupted:", err);
                     alert("Unable to play audiobook file. Please confirm the file exists inside your 'bookFiles/' directory path.");
                 });
         } else {
             this.activeAudio.pause();
-            playIcon.setAttribute('data-lucide', 'play');
-            lucide.createIcons({ node: document.getElementById('player-play-btn') });
+            updatePlayIconUI();
         }
 
         playerBar.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
