@@ -862,10 +862,7 @@
                     <!-- Volume Badge if Series is detected -->
                     <div class="z-10 text-left">
                         ${book.series ? `
-                            <span class="inline-block text-[10px] font-bold text-slate-950/90 bg-brand-500 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full">
-                                ${book.series}
-                            </span> &nbsp
-                            <span class="inline-block text-[10px] font-bold text-slate-950/90 bg-brand-500 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full">
+                            <span class="inline-block text-[9px] font-bold text-slate-950/90 bg-brand-500 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full">
                                 Vol. ${book.seriesOrder ? book.seriesOrder.split(':')[0].trim() : '#'}
                             </span>
                         ` : ''}
