@@ -23,7 +23,7 @@
         event.preventDefault();
         dropZone.classList.remove('dragging');
     }));
-    dropZone.addEventListener('drop', event => processFiles(Array.from(event.dataTransfer.files || [])));
+    dropZone.addEventListener('drop', event => processDroppedItems(event.dataTransfer));
     downloadButton.addEventListener('click', downloadJson);
 
     async function processFiles(files) {
@@ -53,6 +53,52 @@
         const invalidMetadata = metadataFiles.filter(item => item.error).length;
         records.forEach(record => delete record._metadataMatched);
         metadataSummary.textContent = `${matchedMetadata} record${matchedMetadata === 1 ? '' : 's'} enriched from adjacent JSON. ${invalidMetadata ? `${invalidMetadata} JSON file${invalidMetadata === 1 ? '' : 's'} could not be parsed. ` : ''}Ratings default to 0 when unavailable.`;
+    }
+
+    async function processDroppedItems(dataTransfer) {
+        if (!dataTransfer.items) {
+            processFiles(Array.from(dataTransfer.files || []));
+            return;
+        }
+        const files = [];
+        for (const item of Array.from(dataTransfer.items)) {
+            const entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+            if (entry) {
+                await collectEntryFiles(entry, '', files);
+            } else {
+                const file = item.getAsFile ? item.getAsFile() : null;
+                if (file) files.push(file);
+            }
+        }
+        processFiles(files);
+    }
+
+    async function collectEntryFiles(entry, relativeDirectory, files) {
+        if (entry.isFile) {
+            await new Promise(resolve => entry.file(file => {
+                if (!file.webkitRelativePath) {
+                    Object.defineProperty(file, 'webkitRelativePath', {
+                        value: `${relativeDirectory}${file.name}`,
+                        configurable: true
+                    });
+                }
+                files.push(file);
+                resolve();
+            }, resolve));
+            return;
+        }
+        if (!entry.isDirectory) return;
+
+        const reader = entry.createReader();
+        const entries = [];
+        let batch;
+        do {
+            batch = await new Promise(resolve => reader.readEntries(resolve, () => resolve([])));
+            entries.push(...batch);
+        } while (batch.length);
+
+        const directory = `${relativeDirectory}${entry.name}/`;
+        for (const child of entries) await collectEntryFiles(child, directory, files);
     }
 
     async function readMetadataFiles(files) {
