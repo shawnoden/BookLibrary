@@ -3,10 +3,10 @@
 <head>
     <!--
         eBook Library Dashboard
-        Version: 5.10.0
+        Version: 5.11.0
         Changes:
-        - Incremented semantic version number to 5.10.0
-        - Added native HTML title attributes to the category pills in createCompactGridCard and the detail modal to serve as hover tooltips showing the full category name
+        - Incremented semantic version number to 5.11.0
+        - Added Overall Rating to the modal stats breakdown cards, updating the layout to 4 columns
     -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -340,23 +340,30 @@
                     </div>
                 </div>
 
-                <!-- Stats Breakdown Cards -->
-                <div class="grid grid-cols-3 gap-3 my-5 border-t border-b border-slate-800 py-3.5">
-                    <div class="text-center">
+                <!-- Stats Breakdown Cards (4 Columns: Duration, Overall, Story, Performance) -->
+                <div class="grid grid-cols-4 gap-2 my-5 border-t border-b border-slate-800 py-3.5 text-center">
+                    <div>
                         <span class="text-[10px] text-slate-500 uppercase block tracking-wider mb-1">Duration</span>
                         <div class="inline-flex items-center gap-1 text-slate-200">
                             <i data-lucide="hourglass" class="w-3.5 h-3.5 text-emerald-500"></i>
                             <span class="text-xs font-semibold" id="modal-duration">--</span>
                         </div>
                     </div>
-                    <div class="text-center border-l border-r border-slate-800">
-                        <span class="text-[10px] text-slate-500 uppercase block tracking-wider mb-1">Story Rating</span>
+                    <div class="border-l border-slate-800">
+                        <span class="text-[10px] text-slate-500 uppercase block tracking-wider mb-1">Overall</span>
+                        <div class="inline-flex items-center gap-1 text-slate-200">
+                            <i data-lucide="star" class="w-3.5 h-3.5 fill-brand-500 text-brand-500"></i>
+                            <span class="text-xs font-semibold" id="modal-rating-overall">--</span>
+                        </div>
+                    </div>
+                    <div class="border-l border-slate-800">
+                        <span class="text-[10px] text-slate-500 uppercase block tracking-wider mb-1">Story</span>
                         <div class="inline-flex items-center gap-1 text-slate-200">
                             <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-500 text-amber-500"></i>
                             <span class="text-xs font-semibold" id="modal-rating-story">--</span>
                         </div>
                     </div>
-                    <div class="text-center">
+                    <div class="border-l border-slate-800">
                         <span class="text-[10px] text-slate-500 uppercase block tracking-wider mb-1">Performance</span>
                         <div class="inline-flex items-center gap-1 text-slate-200">
                             <i data-lucide="mic" class="w-3.5 h-3.5 text-purple-500"></i>
@@ -1304,7 +1311,8 @@
             const mins = (book.length || 0) % 60;
             document.getElementById('modal-duration').textContent = `${hours}h ${mins}m`;
 
-            // Individual Sub-Ratings
+            // Individual Sub-Ratings & Overall
+            document.getElementById('modal-rating-overall').textContent = book.ratingOverall ? book.ratingOverall.toFixed(2) : '--';
             document.getElementById('modal-rating-story').textContent = book.ratingStory ? book.ratingStory.toFixed(2) : '--';
             document.getElementById('modal-rating-perf').textContent = book.ratingPerformance ? book.ratingPerformance.toFixed(2) : '--';
 

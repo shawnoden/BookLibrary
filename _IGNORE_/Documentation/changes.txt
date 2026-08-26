@@ -65,6 +65,10 @@ Changes:
 - Incremented semantic version number to 5.10.0
 - Added native HTML title attributes to the category pills in createCompactGridCard and the detail modal to serve as hover tooltips showing the full category name
 
+Version: 5.11.0
+Changes:
+- Incremented semantic version number to 5.11.0
+- Added Overall Rating to the modal stats breakdown cards, updating the layout to 4 columns
 
 
 
