@@ -3,13 +3,15 @@
 <head>
     <!--
         Audible Archive Dashboard
-        Version: 5.2.0
+        Version: 5.3.0
         Changes:
-        - Incremented semantic version number to 5.2.0
-        - Made all Detailed List View columns (except Action) fully interactive and sortable
-        - Added active visual sort chevron indicators next to column headers
-        - Synchronized direct column header clicks with the main sorting dropdown selection
-        - Expanded sorting algorithm to support bidirectional field sorting (Title, Author, Narrator, Rating, Length)
+        - Incremented semantic version number to 5.3.0
+        - Added check to support playing and downloading local audiobooks from "bookFiles" folder configured in library.json
+        - Integrated a gorgeous floating custom media player with interactive progress tracking, play/pause and 30s seek controls
+        - Restructured grid cards and detail modal to split and render all categories into individual compact pills
+        - Changed seriesBadgeClass text size to 13px in createCompactGridCard
+        - Updated catBadgeClass and seriesBadgeClass styles to use high-contrast glass gradients when hasImage is false
+        - Updated series template rendering to separate Series Name and Volume into separate distinct badges with spacing
     -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -73,7 +75,7 @@
         }
     </style>
 </head>
-<body class="text-slate-100 min-h-screen pb-12">
+<body class="text-slate-100 min-h-screen pb-24">
 
     <!-- Header & Navigation -->
     <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
@@ -312,17 +314,32 @@
                         <span class="font-bold text-xs uppercase tracking-wider block text-right" id="modal-cover-cat">SCI-FI</span>
                     </div>
 
-                    <!-- Book Metadata -->
-                    <div class="flex-1">
-                        <span id="modal-series-badge" class="inline-block text-[10px] bg-brand-500/10 border border-brand-500/20 text-brand-500 font-semibold px-2 py-0.5 rounded-md mb-1.5"></span>
-                        <h2 id="modal-title" class="text-xl font-bold text-white tracking-tight"></h2>
-                        <p id="modal-subtitle" class="text-xs text-slate-400 mt-0.5 mb-2.5 italic"></p>
+                    <!-- Book Metadata & Action Section -->
+                    <div class="flex-1 flex flex-col md:flex-row justify-between gap-4">
+                        <div class="flex-1 min-w-0">
+                            <span id="modal-series-badge" class="inline-block text-[10px] bg-brand-500/10 border border-brand-500/20 text-brand-500 font-semibold px-2 py-0.5 rounded-md mb-1.5"></span>
+                            <h2 id="modal-title" class="text-xl font-bold text-white tracking-tight"></h2>
+                            <p id="modal-subtitle" class="text-xs text-slate-400 mt-0.5 mb-1.5 italic"></p>
 
-                        <div class="space-y-1.5 text-xs text-slate-300 border-t border-slate-800/80 pt-2.5">
-                            <p><span class="text-slate-500">Author:</span> <strong id="modal-author" class="text-slate-100"></strong></p>
-                            <p><span class="text-slate-500">Narrator:</span> <span id="modal-narrator"></span></p>
-                            <p><span class="text-slate-500">Publisher:</span> <span id="modal-publisher" class="text-slate-400"></span></p>
-                            <p><span class="text-slate-500">Published:</span> <span id="modal-published-date" class="text-slate-400"></span></p>
+                            <!-- Detailed Categories Pills -->
+                            <div id="modal-categories-list" class="flex flex-wrap gap-1 mb-2.5"></div>
+
+                            <div class="space-y-1.5 text-xs text-slate-300 border-t border-slate-800/80 pt-2.5">
+                                <p><span class="text-slate-500">Author:</span> <strong id="modal-author" class="text-slate-100"></strong></p>
+                                <p><span class="text-slate-500">Narrator:</span> <span id="modal-narrator"></span></p>
+                                <p><span class="text-slate-500">Publisher:</span> <span id="modal-publisher" class="text-slate-400"></span></p>
+                                <p><span class="text-slate-500">Published:</span> <span id="modal-published-date" class="text-slate-400"></span></p>
+                            </div>
+                        </div>
+
+                        <!-- Action controls section to the right of metadata if file exists -->
+                        <div id="modal-action-section" class="hidden flex flex-col justify-center gap-2 md:border-l md:border-slate-800 md:pl-4 shrink-0 min-w-[120px]">
+                            <button id="modal-play-btn" class="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs rounded-lg transition-all shadow-md active:scale-95">
+                                <i data-lucide="play" class="w-3.5 h-3.5 fill-slate-950"></i> Play
+                            </button>
+                            <a id="modal-download-btn" download class="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg transition-all border border-slate-700 shadow-sm active:scale-95">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i> Download
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -363,12 +380,53 @@
         </div>
     </div>
 
+    <!-- Persistent Floating Custom Audio Player Bar -->
+    <div id="floating-audio-player" class="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-slate-900/95 backdrop-blur border border-slate-800 rounded-xl p-3 shadow-2xl z-50 transform translate-y-24 opacity-0 pointer-events-none transition-all duration-300 flex flex-col gap-2">
+        <audio id="main-audio" src=""></audio>
+        <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <div id="player-cover" class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-500 to-amber-600 shrink-0 flex items-center justify-center text-slate-950 font-bold text-xs shadow-md">
+                    <i data-lucide="headphones" class="w-5 h-5 text-white"></i>
+                </div>
+                <div class="min-w-0">
+                    <h4 id="player-title" class="text-xs font-bold text-white truncate">Book Title</h4>
+                    <p id="player-author" class="text-[10px] text-slate-400 truncate">Author Name</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button id="player-prev-btn" title="Rewind 30s" class="p-1 text-slate-400 hover:text-white transition-colors active:scale-90">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                </button>
+                <button id="player-play-btn" class="p-1.5 bg-brand-500 text-slate-950 rounded-full hover:bg-brand-600 transition-colors shadow active:scale-90">
+                    <i data-lucide="play" class="w-4 h-4 fill-slate-950" id="player-play-icon"></i>
+                </button>
+                <button id="player-next-btn" title="Skip 30s" class="p-1 text-slate-400 hover:text-white transition-colors active:scale-90">
+                    <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+                </button>
+                <button id="player-close-btn" class="p-1 text-slate-500 hover:text-red-400 transition-colors ml-1">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+        <!-- Progress bar and time labels -->
+        <div class="flex items-center gap-2 text-[9px] text-slate-400">
+            <span id="player-current-time">0:00</span>
+            <div class="flex-1 bg-slate-950 h-1 rounded-full overflow-hidden cursor-pointer relative" id="player-progress-container">
+                <div id="player-progress-bar" class="bg-brand-500 h-full w-0 transition-all duration-100"></div>
+            </div>
+            <span id="player-duration">0:00</span>
+        </div>
+    </div>
+
     <!-- Data Injection & Application Scripts -->
     <script>
         // Main dataset loaded dynamically
         let libraryData = [];
 
         // State variables
+        let currentPlayingBook = null;
+        let activeAudio = document.getElementById('main-audio');
+
         let currentLayout = 'grid'; // grid | list
         let activeCategory = 'all';
         let activeNarrator = 'all'; // Narrator filter state
@@ -448,6 +506,77 @@
             });
 
             document.getElementById('clear-filters-btn').addEventListener('click', resetFilters);
+
+            // Floating Player UI Config
+            const playerBar = document.getElementById('floating-audio-player');
+            const playBtn = document.getElementById('player-play-btn');
+            const playIcon = document.getElementById('player-play-icon');
+            const prevBtn = document.getElementById('player-prev-btn');
+            const nextBtn = document.getElementById('player-next-btn');
+            const closeBtn = document.getElementById('player-close-btn');
+            const progressBar = document.getElementById('player-progress-bar');
+            const progressContainer = document.getElementById('player-progress-container');
+            const currentTimeEl = document.getElementById('player-current-time');
+            const durationEl = document.getElementById('player-duration');
+
+            playBtn.addEventListener('click', () => {
+                if (activeAudio.paused) {
+                    activeAudio.play();
+                    playIcon.setAttribute('data-lucide', 'pause');
+                } else {
+                    activeAudio.pause();
+                    playIcon.setAttribute('data-lucide', 'play');
+                }
+                lucide.createIcons();
+            });
+
+            // Update Progress bar details
+            activeAudio.addEventListener('timeupdate', () => {
+                if (activeAudio.duration) {
+                    const percent = (activeAudio.currentTime / activeAudio.duration) * 100;
+                    progressBar.style.width = `${percent}%`;
+                    currentTimeEl.textContent = formatTime(activeAudio.currentTime);
+                    durationEl.textContent = formatTime(activeAudio.duration);
+                }
+            });
+
+            // Support progress scrubbing
+            progressContainer.addEventListener('click', (e) => {
+                const rect = progressContainer.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const width = rect.width;
+                if (activeAudio.duration) {
+                    activeAudio.currentTime = (clickX / width) * activeAudio.duration;
+                }
+            });
+
+            prevBtn.addEventListener('click', () => {
+                activeAudio.currentTime = Math.max(0, activeAudio.currentTime - 30);
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (activeAudio.duration) {
+                    activeAudio.currentTime = Math.min(activeAudio.duration, activeAudio.currentTime + 30);
+                }
+            });
+
+            closeBtn.addEventListener('click', () => {
+                activeAudio.pause();
+                currentPlayingBook = null;
+                playerBar.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+            });
+
+            function formatTime(secs) {
+                const h = Math.floor(secs / 3600);
+                const m = Math.floor((secs % 3600) / 60);
+                const s = Math.floor(secs % 60);
+                const formattedS = s < 10 ? '0' + s : s;
+                if (h > 0) {
+                    const formattedM = m < 10 ? '0' + m : m;
+                    return `${h}:${formattedM}:${formattedS}`;
+                }
+                return `${m}:${formattedS}`;
+            }
         });
 
         // Try to load library.json directly
@@ -961,7 +1090,6 @@
         }
 
         // Creates compact tactile cover grid card with hybrid cover features
-        // Height adjusted to 155px to account for larger readable font sizes safely
         function createCompactGridCard(book) {
             const card = document.createElement('div');
             card.className = "group bg-slate-900/60 border border-slate-800/80 rounded-lg hover:border-slate-700/80 hover:bg-slate-900 transition-all duration-300 shadow-md flex flex-col justify-between overflow-hidden cursor-pointer h-[155px]";
@@ -996,12 +1124,17 @@
 
             // Conditional background capsule classes for cover text overlay based on image presence
             const catBadgeClass = hasImage
-                ? "text-[8px] font-extrabold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded tracking-wider uppercase truncate max-w-[65%]"
-                : "text-[8px] font-extrabold text-white tracking-wider uppercase truncate max-w-[65%] drop-shadow-sm";
+                ? "text-[8px] font-extrabold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded tracking-wider uppercase truncate max-w-[70%]"
+                : "text-[8px] font-extrabold text-white bg-white/20 border border-white/20 px-1.5 py-0.5 rounded backdrop-blur-sm tracking-wider uppercase truncate max-w-[70%]";
 
             const seriesBadgeClass = hasImage
-                ? "inline-block text-[8px] font-bold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full"
-                : "inline-block text-[8px] font-bold text-white/95 tracking-tight truncate max-w-full drop-shadow-sm";
+                ? "inline-block text-[13px] font-bold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full"
+                : "inline-block text-[13px] font-bold text-white/95 bg-brand-500/50 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full";
+
+            // Map and parse all categories dynamically inside their own distinct pills
+            const categoriesHtml = book.categories
+                ? book.categories.split(';').map(c => `<span class="${catBadgeClass} shrink-0">${c.trim()}</span>`).join(' ')
+                : `<span class="${catBadgeClass} shrink-0">STORY</span>`;
 
             card.innerHTML = `
                 <!-- Dynamic gradient or image tactile cover block (h-20 for vertical cover styling) -->
@@ -1011,20 +1144,16 @@
                     <div class="absolute -right-6 -bottom-6 w-16 h-16 bg-white/5 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500"></div>
 
                     <div class="flex justify-between items-center z-10 w-full gap-1">
-                        <span class="${catBadgeClass}">
-                            ${book.categories ? book.categories.split(';')[0] : 'STORY'}
-                        </span>
+                        <div class="flex flex-wrap gap-1 max-w-[80%] overflow-hidden">
+                            ${categoriesHtml}
+                        </div>
                         <!-- Light white icon with drop shadow -->
-                        <i data-lucide="${style.icon}" class="w-3.5 h-3.5 text-white drop-shadow-md"></i>
+                        <i data-lucide="${style.icon}" class="w-3.5 h-3.5 text-white drop-shadow-md shrink-0"></i>
                     </div>
 
                     <!-- Series details with light, high-contrast Slate Capsule -->
                     <div class="z-10 text-left w-full mt-auto">
-                        ${book.series ? `
-                            <span class="${seriesBadgeClass}">
-                                ${book.series} • Vol. ${volNum}
-                            </span>
-                        ` : ''}
+                        ${book.series ? `<span class="${seriesBadgeClass}">${book.series}</span> <span class="${seriesBadgeClass}">Vol. ${volNum}</span>` : ''}
                     </div>
                 </div>
 
@@ -1130,13 +1259,46 @@
                 seriesBadge.classList.add('hidden');
             }
 
-            // Title block (shown once in detail)
+            // Title block
             document.getElementById('modal-title').textContent = book.title;
             document.getElementById('modal-subtitle').textContent = book.subtitle || '';
             document.getElementById('modal-author').textContent = book.authors;
             document.getElementById('modal-narrator').textContent = book.narrators;
             document.getElementById('modal-publisher').textContent = book.publisher || 'N/A';
             document.getElementById('modal-published-date').textContent = book.datePublished || 'N/A';
+
+            // Render Categories Pills dynamically inside the detail modal
+            const modalCatsList = document.getElementById('modal-categories-list');
+            modalCatsList.innerHTML = '';
+            if (book.categories) {
+                book.categories.split(';').forEach(c => {
+                    const pill = document.createElement('span');
+                    pill.className = "text-[9px] font-bold text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded-full tracking-wide";
+                    pill.textContent = c.trim();
+                    modalCatsList.appendChild(pill);
+                });
+            }
+
+            // Configure dynamic file check Play and Download buttons
+            const actionSection = document.getElementById('modal-action-section');
+            if (book.bookFile) {
+                actionSection.classList.remove('hidden');
+
+                const playBtn = document.getElementById('modal-play-btn');
+                playBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    playAudioFile(book);
+                };
+
+                const downloadBtn = document.getElementById('modal-download-btn');
+                let filePath = book.bookFile;
+                if (!filePath.startsWith('bookFiles/') && !filePath.startsWith('http://') && !filePath.startsWith('https://') && !filePath.startsWith('./')) {
+                    filePath = 'bookFiles/' + filePath;
+                }
+                downloadBtn.href = filePath;
+            } else {
+                actionSection.classList.add('hidden');
+            }
 
             // Time translation
             const hours = Math.floor((book.length || 0) / 60);
@@ -1175,6 +1337,53 @@
                 closeModal();
             }
         });
+
+        // Global Custom Playback Controller
+        function playAudioFile(book) {
+            const playerBar = document.getElementById('floating-audio-player');
+            const playerTitle = document.getElementById('player-title');
+            const playerAuthor = document.getElementById('player-author');
+            const playIcon = document.getElementById('player-play-icon');
+
+            let filePath = book.bookFile;
+            if (!filePath.startsWith('bookFiles/') && !filePath.startsWith('http://') && !filePath.startsWith('https://') && !filePath.startsWith('./')) {
+                filePath = 'bookFiles/' + filePath;
+            }
+
+            // If it's a new track, load and start playing
+            if (currentPlayingBook !== book) {
+                currentPlayingBook = book;
+                activeAudio.src = filePath;
+                playerTitle.textContent = book.title;
+                playerAuthor.textContent = book.authors;
+
+                // Style player cover with match category color
+                const style = getCategoryStyle(book.categories);
+                const playerCover = document.getElementById('player-cover');
+                playerCover.className = `w-10 h-10 rounded-lg bg-gradient-to-br ${style.gradient} shrink-0 flex items-center justify-center text-slate-950 font-bold text-xs shadow-md`;
+                playerCover.innerHTML = `<i data-lucide="${style.icon}" class="w-5 h-5 text-white"></i>`;
+
+                lucide.createIcons();
+            }
+
+            // Toggle active play state
+            if (activeAudio.paused) {
+                activeAudio.play().then(() => {
+                    playIcon.setAttribute('data-lucide', 'pause');
+                    lucide.createIcons();
+                }).catch(err => {
+                    console.error("Audio playback error:", err);
+                    alert("Unable to play audiobook file. Please check that the file is located inside your 'bookFiles/' directory.");
+                });
+            } else {
+                activeAudio.pause();
+                playIcon.setAttribute('data-lucide', 'play');
+                lucide.createIcons();
+            }
+
+            // Slide up custom player bar
+            playerBar.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+        }
     </script>
 </body>
 </html>
