@@ -13,8 +13,14 @@
 
     lucide.createIcons();
 
-    chooseButton.addEventListener('click', () => input.click());
-    input.addEventListener('change', () => processFiles(Array.from(input.files || [])));
+    chooseButton.addEventListener('click', chooseFolder);
+    input.addEventListener('change', () => {
+        const files = Array.from(input.files || []);
+        if (files.length && !files.some(file => file.webkitRelativePath)) {
+            status.textContent = 'Firefox did not provide folder paths. Drop the folder here or select files individually.';
+        }
+        processFiles(files);
+    });
     ['dragenter', 'dragover'].forEach(eventName => dropZone.addEventListener(eventName, event => {
         event.preventDefault();
         dropZone.classList.add('dragging');
@@ -25,6 +31,36 @@
     }));
     dropZone.addEventListener('drop', event => processDroppedItems(event.dataTransfer));
     downloadButton.addEventListener('click', downloadJson);
+
+    async function chooseFolder() {
+        if (!window.showDirectoryPicker) {
+            input.click();
+            return;
+        }
+
+        try {
+            const directory = await window.showDirectoryPicker({ mode: 'read' });
+            status.textContent = `Scanning ${directory.name} and all subfolders...`;
+            const files = [];
+            await collectDirectoryFiles(directory, '', files);
+            await processFiles(files);
+        } catch (error) {
+            if (error.name !== 'AbortError') status.textContent = 'Unable to read that folder';
+        }
+    }
+
+    async function collectDirectoryFiles(directory, relativeDirectory, files) {
+        for await (const [name, handle] of directory.entries()) {
+            const relativePath = `${relativeDirectory}${name}`;
+            if (handle.kind === 'file') {
+                const file = await handle.getFile();
+                Object.defineProperty(file, 'relativePath', { value: relativePath, configurable: true });
+                files.push(file);
+            } else if (handle.kind === 'directory') {
+                await collectDirectoryFiles(handle, `${relativePath}/`, files);
+            }
+        }
+    }
 
     async function processFiles(files) {
         const mp3Files = files.filter(file => file.name.toLowerCase().endsWith('.mp3'));
@@ -48,7 +84,8 @@
         }
         fileCount.textContent = records.length;
         downloadButton.disabled = records.length === 0;
-        status.textContent = `Finished: ${records.length} record${records.length === 1 ? '' : 's'} ready`;
+        const pathWarning = !files.some(file => file.relativePath || file.webkitRelativePath) ? ' Folder paths were unavailable.' : '';
+        status.textContent = `Finished: ${records.length} record${records.length === 1 ? '' : 's'} ready.${pathWarning}`;
         const matchedMetadata = records.filter(record => record._metadataMatched).length;
         const invalidMetadata = metadataFiles.filter(item => item.error).length;
         records.forEach(record => delete record._metadataMatched);
@@ -76,12 +113,7 @@
     async function collectEntryFiles(entry, relativeDirectory, files) {
         if (entry.isFile) {
             await new Promise(resolve => entry.file(file => {
-                if (!file.webkitRelativePath) {
-                    Object.defineProperty(file, 'webkitRelativePath', {
-                        value: `${relativeDirectory}${file.name}`,
-                        configurable: true
-                    });
-                }
+                Object.defineProperty(file, 'relativePath', { value: `${relativeDirectory}${file.name}`, configurable: true });
                 files.push(file);
                 resolve();
             }, resolve));
@@ -150,8 +182,8 @@
                 length: duration,
                 description: textValue(tags.comment),
                 publisher: textValue(tags.publisher),
-                series: textValue(tags.album),
-                seriesOrder: textValue(tags.track),
+                series: seriesValue(tags.album),
+                seriesOrder: seriesOrderValue(tags.track),
                 ratingOverall: 0,
                 ratingPerformance: 0,
                 ratingStory: 0,
@@ -243,12 +275,17 @@
             genre: 'categories', album: 'series', track: 'seriesOrder', year: 'datePublished',
             duration: 'length', file: 'bookFile', publisher_name: 'publisher',
             publisher_summary: 'description', merchandising_summary: 'description',
-            runtime_length_min: 'length', issue_date: 'datePublished', release_date: 'datePublished'
+            runtime_length_min: 'length', issue_date: 'datePublished', release_date: 'datePublished',
+            series_name: 'series', series_sequence: 'seriesOrder'
         };
         Object.entries(metadata).forEach(([key, value]) => {
             const target = aliases[key] || key;
             if (!(target in record) || value === null || value === undefined || value === '') return;
-            if (target === 'length') {
+            if (target === 'series') {
+                record[target] = seriesValue(value) || record[target];
+            } else if (target === 'seriesOrder') {
+                record[target] = seriesOrderValue(value) || record[target];
+            } else if (target === 'length') {
                 record[target] = key === 'runtime_length_min' ? minutesValue(value, record.length) : durationInMinutes(value, record.length);
             } else if (['ratingOverall', 'ratingPerformance', 'ratingStory'].includes(target)) {
                 record[target] = Number(value) || record[target];
@@ -305,13 +342,24 @@
         return Number.isFinite(numericValue) && numericValue > 0 ? Math.round(numericValue) : fallback;
     }
 
+    function seriesValue(value) {
+        if (Array.isArray(value)) return value.map(item => seriesValue(item)).filter(Boolean).join('; ');
+        if (value && typeof value === 'object') return seriesValue(value.name || value.seriesName || value.title || value.series);
+        return typeof value === 'string' ? value.trim() : '';
+    }
+
+    function seriesOrderValue(value) {
+        if (value && typeof value === 'object') return seriesOrderValue(value.sequence || value.order || value.number || value.position);
+        return value === null || value === undefined ? '' : String(value).trim();
+    }
+
     function getSelectionRoot(files) {
-        const firstPath = files.map(file => file.webkitRelativePath).find(Boolean);
+        const firstPath = files.map(file => file.relativePath || file.webkitRelativePath).find(Boolean);
         return firstPath ? firstPath.split('/')[0] : '';
     }
 
     function relativeFilePath(file) {
-        const path = file.webkitRelativePath || file.name;
+        const path = file.relativePath || file.webkitRelativePath || file.name;
         return selectionRoot && path.startsWith(`${selectionRoot}/`) ? path.slice(selectionRoot.length + 1) : path;
     }
 
