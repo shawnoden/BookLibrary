@@ -107,12 +107,15 @@
                 ratingStory: 0,
                 datePublished: year,
                 categories: textValue(tags.genre),
-                bookFile: relativePath
+                bookFile: relativePath,
+                asin: '',
+                backgroundImage: ''
         };
         if (sidecar) {
             mergeMetadata(record, sidecar);
             record._metadataMatched = true;
         }
+        if (!record.asin) delete record.asin;
         return { record, error: error && !sidecar ? error : '' };
     }
 
@@ -123,7 +126,8 @@
         const candidates = metadataFiles.filter(item => item.value && typeof item.value === 'object');
         const exactSidecar = candidates.find(item => {
             const jsonPath = normalizePath(item.file.webkitRelativePath || item.file.name);
-            return jsonPath.slice(0, jsonPath.lastIndexOf('/')) === audioDirectory && item.file.name.replace(/\.json$/i, '').toLowerCase() === audioBase;
+            const jsonBase = item.file.name.replace(/\.json$/i, '').replace(/\.metadata$/i, '').toLowerCase();
+            return jsonPath.slice(0, jsonPath.lastIndexOf('/')) === audioDirectory && jsonBase === audioBase;
         });
         if (exactSidecar) {
             return selectMetadataRecord(exactSidecar.value, audioFile) || (isMetadataObject(exactSidecar.value) ? exactSidecar.value : null);
@@ -155,16 +159,61 @@
     }
 
     function mergeMetadata(record, metadata) {
+        metadata = normalizeMetadata(metadata);
         const aliases = {
             author: 'authors', artist: 'authors', albumArtist: 'authors', narrator: 'narrators',
             genre: 'categories', album: 'series', track: 'seriesOrder', year: 'datePublished',
-            duration: 'length', file: 'bookFile'
+            duration: 'length', file: 'bookFile', publisher_name: 'publisher',
+            publisher_summary: 'description', merchandising_summary: 'description',
+            runtime_length_min: 'length', issue_date: 'datePublished', release_date: 'datePublished'
         };
         Object.entries(metadata).forEach(([key, value]) => {
             const target = aliases[key] || key;
             if (!(target in record) || value === null || value === undefined || value === '') return;
-            record[target] = target === 'length' ? durationInMinutes(value, record.length) : textValue(value);
+            if (target === 'length') {
+                record[target] = durationInMinutes(value, record.length);
+            } else if (['ratingOverall', 'ratingPerformance', 'ratingStory'].includes(target)) {
+                record[target] = Number(value) || record[target];
+            } else {
+                record[target] = textValue(value);
+            }
         });
+    }
+
+    function normalizeMetadata(metadata) {
+        if (!metadata || typeof metadata !== 'object') return {};
+        const normalized = { ...metadata };
+        const rating = metadata.rating || {};
+        const images = metadata.product_images || {};
+
+        if (typeof metadata.asin === 'string' && metadata.asin.trim()) normalized.asin = metadata.asin.trim();
+        if (metadata.authors) normalized.authors = peopleValue(metadata.authors);
+        if (metadata.narrators) normalized.narrators = peopleValue(metadata.narrators);
+        if (metadata.publisher_name) normalized.publisher_name = metadata.publisher_name;
+        if (metadata.publisher_summary) normalized.publisher_summary = metadata.publisher_summary;
+        if (metadata.runtime_length_min) normalized.runtime_length_min = metadata.runtime_length_min;
+        if (metadata.issue_date || metadata.release_date || metadata.publication_datetime) {
+            normalized.datePublished = metadata.issue_date || metadata.release_date || metadata.publication_datetime;
+        }
+        if (rating.overall_distribution) normalized.ratingOverall = rating.overall_distribution.average_rating;
+        if (rating.performance_distribution) normalized.ratingPerformance = rating.performance_distribution.average_rating;
+        if (rating.story_distribution) normalized.ratingStory = rating.story_distribution.average_rating;
+        if (metadata.category_ladders) normalized.categories = categoryValue(metadata.category_ladders);
+        if (images['500'] || images['300'] || images['large']) normalized.backgroundImage = images['500'] || images['300'] || images.large;
+        return normalized;
+    }
+
+    function peopleValue(value) {
+        if (!Array.isArray(value)) return textValue(value);
+        return value.map(person => typeof person === 'object' ? person.name : person).filter(Boolean).join(', ');
+    }
+
+    function categoryValue(ladders) {
+        if (!Array.isArray(ladders)) return textValue(ladders);
+        const names = ladders.flatMap(item => Array.isArray(item.ladder) ? item.ladder : [])
+            .map(category => typeof category === 'object' ? category.name : category)
+            .filter(Boolean);
+        return [...new Set(names)].join('; ');
     }
 
     function durationInMinutes(value, fallback) {
@@ -180,6 +229,7 @@
     function textValue(value) {
         if (!value) return '';
         if (typeof value === 'object' && value.text) return String(value.text);
+        if (typeof value === 'object' && value.name) return String(value.name);
         if (Array.isArray(value)) return value.join(', ');
         return String(value);
     }
