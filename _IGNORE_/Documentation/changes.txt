@@ -22,3 +22,11 @@ Changes:
 - Updated catBadgeClass and seriesBadgeClass styles to use high-contrast glass gradients when hasImage is false
 - Updated series template rendering to separate Series Name and Volume into separate distinct badges with spacing
 
+Version: 5.4.0
+Changes:
+- Incremented semantic version number to 5.4.0
+- Standardized category pills style: now always renders using the glassmorphic
+  theme (backdrop-blur, translucent white background, and borders) even when
+  a local book cover (backgroundImage) is present.
+
+

@@ -3,15 +3,12 @@
 <head>
     <!--
         Audible Archive Dashboard
-        Version: 5.3.0
+        Version: 5.4.0
         Changes:
-        - Incremented semantic version number to 5.3.0
-        - Added check to support playing and downloading local audiobooks from "bookFiles" folder configured in library.json
-        - Integrated a gorgeous floating custom media player with interactive progress tracking, play/pause and 30s seek controls
-        - Restructured grid cards and detail modal to split and render all categories into individual compact pills
-        - Changed seriesBadgeClass text size to 13px in createCompactGridCard
-        - Updated catBadgeClass and seriesBadgeClass styles to use high-contrast glass gradients when hasImage is false
-        - Updated series template rendering to separate Series Name and Volume into separate distinct badges with spacing
+        - Incremented semantic version number to 5.4.0
+        - Standardized category pills style: now always renders using the glassmorphic
+          theme (backdrop-blur, translucent white background, and borders) even when
+          a local book cover (backgroundImage) is present.
     -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1122,11 +1119,10 @@
                 ? "absolute inset-0 bg-slate-950/40 group-hover:bg-slate-950/20 transition-colors"
                 : "absolute inset-0 bg-slate-950/10 group-hover:bg-slate-950/0 transition-colors";
 
-            // Conditional background capsule classes for cover text overlay based on image presence
-            const catBadgeClass = hasImage
-                ? "text-[8px] font-extrabold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded tracking-wider uppercase truncate max-w-[70%]"
-                : "text-[8px] font-extrabold text-white bg-white/20 border border-white/20 px-1.5 py-0.5 rounded backdrop-blur-sm tracking-wider uppercase truncate max-w-[70%]";
+            // Uniform high-contrast glassmorphic capsule class for category tags
+            const catBadgeClass = "text-[8px] font-extrabold text-white bg-white/20 border border-white/20 px-1.5 py-0.5 rounded backdrop-blur-sm tracking-wider uppercase truncate max-w-[70%]";
 
+            // Conditional background capsule classes for series badge based on image presence
             const seriesBadgeClass = hasImage
                 ? "inline-block text-[13px] font-bold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full"
                 : "inline-block text-[13px] font-bold text-white/95 bg-brand-500/50 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full";
