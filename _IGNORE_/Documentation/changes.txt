@@ -60,6 +60,10 @@ Changes:
 - Incremented semantic version number to 5.9.0
 - Updated 'catBadgeClass' inside 'createCompactGridCard' to use 'max-w-full' instead of 'max-w-[70%]' so category pills only truncate if they are too long for the entire available card container space
 
+Version: 5.10.0
+Changes:
+- Incremented semantic version number to 5.10.0
+- Added native HTML title attributes to the category pills in createCompactGridCard and the detail modal to serve as hover tooltips showing the full category name
 
 
 

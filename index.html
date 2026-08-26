@@ -3,16 +3,16 @@
 <head>
     <!--
         eBook Library Dashboard
-        Version: 5.9.0
+        Version: 5.10.0
         Changes:
-        - Incremented semantic version number to 5.9.0
-        - Updated 'catBadgeClass' inside 'createCompactGridCard' to use 'max-w-full' instead of 'max-w-[70%]' so category pills only truncate if they are too long for the entire available card container space
+        - Incremented semantic version number to 5.10.0
+        - Added native HTML title attributes to the category pills in createCompactGridCard and the detail modal to serve as hover tooltips showing the full category name
     -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>eBook Library Dashboard</title>
     <!-- Vector Favicon matching the open-book logo -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23f59e0b'/%3E%3Cpath d='M6 8h7a3 3 0 0 1 3 3v14a2 2 0 0 0-2-2H6z' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M26 8h-7a3 3 0 0 0-3 3v14a2 2 0 0 1 2-2h6z' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link class="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23f59e0b'/%3E%3Cpath d='M6 8h7a3 3 0 0 1 3 3v14a2 2 0 0 0-2-2H6z' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M26 8h-7a3 3 0 0 0-3 3v14a2 2 0 0 1 2-2h6z' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons for clean vector glyphs -->
@@ -1123,16 +1123,16 @@
                 : "absolute inset-0 bg-slate-950/10 group-hover:bg-slate-950/0 transition-colors";
 
             // High-contrast glassmorphic capsule class for category tags (Supports full flex width before truncation)
-            const catBadgeClass = "text-[8px] font-extrabold text-white bg-white/20 border border-white/20 px-1.5 py-0.5 rounded backdrop-blur-sm tracking-wider uppercase truncate max-w-full";
+            const catBadgeClass = "text-[8px] font-extrabold text-white bg-white/20 border border-white/20 px-1.5 py-0.5 rounded backdrop-blur-sm tracking-wider uppercase truncate max-w-full cursor-help";
 
             // Conditional background capsule classes for series badge based on image presence
             const seriesBadgeClass = hasImage
                 ? "inline-block text-[13px] font-bold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full"
                 : "inline-block text-[13px] font-bold text-white/95 bg-brand-500/50 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full";
 
-            // Map all categories inside standard high-contrast glassmorphic tags
+            // Map all categories inside standard high-contrast glassmorphic tags with dynamic title attributes as tooltips
             const categoriesHtml = book.categories
-                ? book.categories.split(';').map(c => `<span class="${catBadgeClass}">${c.trim()}</span>`).join(' ')
+                ? book.categories.split(';').map(c => `<span class="${catBadgeClass}" title="${c.trim()}">${c.trim()}</span>`).join(' ')
                 : `<span class="${catBadgeClass}">STORY</span>`;
 
             card.innerHTML = `
@@ -1271,8 +1271,9 @@
             if (book.categories) {
                 book.categories.split(';').forEach(c => {
                     const pill = document.createElement('span');
-                    pill.className = "text-[9px] font-bold text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded-full tracking-wide";
+                    pill.className = "text-[9px] font-bold text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded-full tracking-wide cursor-help";
                     pill.textContent = c.trim();
+                    pill.title = c.trim(); // Add tooltip to modal pills too just in case
                     modalCatsList.appendChild(pill);
                 });
             }
