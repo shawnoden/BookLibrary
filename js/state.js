@@ -1,14 +1,13 @@
 /**
  * Audiobook Library State Module
  * Initializes namespace, manages reactivity, and local storage bindings.
- * Creates the unified global singleton namespace and encapsulates the state fields, default configurations, and localStorage synchronization pipelines.
  */
 window.AudiobookApp = window.AudiobookApp || {};
 
 window.AudiobookApp.state = {
     // Primary collection storage
     libraryData: [],
-    
+
     // Playback state variables
     currentPlayingBook: null,
     isPlaying: false,
@@ -52,6 +51,7 @@ window.AudiobookApp.state = {
      * Toggles the listened state of a specific audiobook ID
      */
     toggleListened: function(bookId) {
+        if (!bookId) return;
         if (this.listenedSet.has(bookId)) {
             this.listenedSet.delete(bookId);
             // If marked unlistened, reset progress mapping if complete
@@ -69,6 +69,7 @@ window.AudiobookApp.state = {
      * Updates playback progress mapping dynamically
      */
     updatePlaybackProgress: function(bookId, percent) {
+        if (!bookId) return;
         const value = Math.min(100, Math.max(0, Math.round(percent)));
         this.playbackProgressMap[bookId] = value;
         if (value === 100) {

@@ -140,10 +140,11 @@ window.AudiobookApp.main = {
 
                 // Instantly update local progress map
                 if (state.currentPlayingBook) {
-                    state.updatePlaybackProgress(state.currentPlayingBook.asin, percent);
+                    const bookId = utils.getBookId(state.currentPlayingBook);
+                    state.updatePlaybackProgress(bookId, percent);
 
                     // Throttle re-renders during active listening, updating targets dynamically
-                    const listRowEl = document.querySelector(`[onclick="window.AudiobookApp.ui.openModal('${state.currentPlayingBook.asin}')"]`);
+                    const listRowEl = document.querySelector(`[onclick="window.AudiobookApp.ui.openModal('${bookId}')"]`);
                     if (listRowEl) {
                         const rowProgress = listRowEl.querySelector('.bg-brand-500');
                         const textLabel = listRowEl.querySelector('.font-mono');
@@ -320,6 +321,8 @@ window.AudiobookApp.main = {
         const playerTitle = document.getElementById('player-title');
         const playerAuthor = document.getElementById('player-author');
         const playBtn = document.getElementById('player-play-btn');
+
+        const bookId = utils.getBookId(book);
 
         let filePath = book.bookFile;
         if (!filePath.startsWith('bookFiles/') && !filePath.startsWith('http://') && !filePath.startsWith('https://') && !filePath.startsWith('./')) {
