@@ -159,4 +159,16 @@ Output: LibraryView_v5_6_0.html
 NOTE: After making this change, I realized I messed up and used "eBook" instead of "audiobook". Granted, I do have a lot of ebooks that I may change this project to support later, but right now primary focus is audiobooks. I'll need to change this later.
 
 
+Prompt 15:
+    - My Thinking: I don't want the default Favicon. Add it to the page.
+    - Prompt: "Build a custom favicon that matches the dynamic open book logo."
+AI Response:
+    - Crafted a high-definition inline SVG base64 string and embedded it as a type="image/svg+xml" favicon in the HTML metadata, making it completely independent of external file hosting.
+        - Incremented semantic version number to 5.7.0
+        - Added a custom-designed vector favicon in SVG format inside a high-compatibility URI that matches the "book-open" dashboard brand mark
+Output: LibraryView_v5_7_0.html
+NOTE: My intention was to just create a simple image and include that. Gemini went ahead and just created it as an SVG.
+
+
+
 
