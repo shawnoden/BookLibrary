@@ -299,6 +299,7 @@ window.AudiobookApp.ui = {
 
         // Resolve absolute unique ID
         const bookId = utils.getBookId(book);
+        card.setAttribute('data-book-id', bookId);
 
         // Listen tracking visualization modifiers
         const isListened = state.listenedSet.has(bookId);
@@ -420,6 +421,8 @@ window.AudiobookApp.ui = {
         const row = document.createElement('tr');
 
         const bookId = utils.getBookId(book);
+        row.setAttribute('data-book-id', bookId);
+        
         const isListened = state.listenedSet.has(bookId);
         const progressPercentage = state.playbackProgressMap[bookId] || 0;
 

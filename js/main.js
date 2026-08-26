@@ -143,14 +143,18 @@ window.AudiobookApp.main = {
                     const bookId = utils.getBookId(state.currentPlayingBook);
                     state.updatePlaybackProgress(bookId, percent);
 
-                    // Throttle re-renders during active listening, updating targets dynamically
-                    const listRowEl = document.querySelector(`[onclick="window.AudiobookApp.ui.openModal('${bookId}')"]`);
-                    if (listRowEl) {
-                        const rowProgress = listRowEl.querySelector('.bg-brand-500');
-                        const textLabel = listRowEl.querySelector('.font-mono');
-                        if (rowProgress) rowProgress.style.width = `${Math.round(percent)}%`;
-                        if (textLabel) textLabel.textContent = `${Math.round(percent)}%`;
-                    }
+                    // Locate table row and cards containing targeted data attribute elements
+                    const matchedElements = document.querySelectorAll(`[data-book-id="${bookId}"]`);
+                    matchedElements.forEach(element => {
+                        const progressIndicator = element.querySelector('.bg-brand-500');
+                        const progressLabel = element.querySelector('.font-mono');
+                        if (progressIndicator) {
+                            progressIndicator.style.width = `${Math.round(percent)}%`;
+                        }
+                        if (progressLabel) {
+                            progressLabel.textContent = `${Math.round(percent)}%`;
+                        }
+                    });
                 }
             }
         });
@@ -202,7 +206,6 @@ window.AudiobookApp.main = {
 
             const onTouchEnd = () => {
                 this.isDraggingScrub = false;
-                const rect = progressContainer.getBoundingClientRect();
                 const currentWidth = parseFloat(progressBar.style.width) / 100;
                 if (this.activeAudio.duration) {
                     this.activeAudio.currentTime = currentWidth * this.activeAudio.duration;
@@ -315,14 +318,11 @@ window.AudiobookApp.main = {
     playAudioFile: function(book) {
         const state = window.AudiobookApp.state;
         const utils = window.AudiobookApp.utils;
-        const ui = window.AudiobookApp.ui;
 
         const playerBar = document.getElementById('floating-audio-player');
         const playerTitle = document.getElementById('player-title');
         const playerAuthor = document.getElementById('player-author');
         const playBtn = document.getElementById('player-play-btn');
-
-        const bookId = utils.getBookId(book);
 
         let filePath = book.bookFile;
         if (!filePath.startsWith('bookFiles/') && !filePath.startsWith('http://') && !filePath.startsWith('https://') && !filePath.startsWith('./')) {

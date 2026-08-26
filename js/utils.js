@@ -19,11 +19,13 @@ window.AudiobookApp.utils = {
 
     /**
      * Safely resolves a completely unique, crash-proof string identifier for a book.
-     * Prioritizes 'asin', then 'id', and falls back to a title-author composite key.
+     * Prioritizes 'asin', then 'id', and falls back to a sanitized title-author composite key.
+     * Replaces any characters that are invalid in CSS selectors with underscores.
      */
     getBookId: function(book) {
         if (!book) return '';
-        return book.asin || book.id || `${book.title}-${book.authors}`.replace(/\s+/g, '_');
+        const rawId = book.asin || book.id || `${book.title}-${book.authors}`;
+        return rawId.replace(/[^a-zA-Z0-9-_]/g, '_');
     },
 
     /**
