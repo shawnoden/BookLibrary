@@ -85,5 +85,25 @@ Architecture & Enhancements:
 - Series Grouping with automatic chronological volume sorting (using float volume numbering).
 - Fully custom, high-fidelity Local Audio Media Player Engine featuring mouse-draggable scrubbing.
 
+Version: 5.12.0 (Optimized Production Build)
+Architectural Upgrades:
+- Replaced global Lucide DOM scanning with element-targeted instantiation loops.
+- Integrated high-performance debouncing engine on global collection searches.
+- Upgraded card elements to semantic HTML5 <article> wrappers.
+- Capped layout thrashing via cached element measurements during audio player scrubbing.
 
+Version: 5.13.0 (Enterprise Progressive Build)
+Architectural Upgrades for Large Collections:
+- Progressive Batch Rendering Engine (40-item initial paint).
+- IntersectionObserver-driven scroll sentinel to load pages smoothly.
+- Dynamic slicing applied to both Grid and Grouped Series layouts.
+- Pre-emptive background image lazy setup mapping viewport targets.
+
+Version: 5.14.0 (Enterprise Progressive Build)
+Architectural Upgrades for Large Collections:
+- Progressive Batch Rendering Engine (40-item initial paint).
+- IntersectionObserver-driven scroll sentinel to load pages smoothly.
+- Dynamic slicing applied to both Grid and Grouped Series layouts.
+- Pre-emptive background image lazy setup mapping viewport targets.
+- Complete terminology alignment to "Audiobook".
 
