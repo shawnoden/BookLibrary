@@ -440,6 +440,7 @@
             render();
         }
 
+        // Build standard statistics summaries
         function initStats() {
             // Count
             document.getElementById('stat-book-count').textContent = `${libraryData.length} audiobooks`;
@@ -861,7 +862,9 @@
 
             // Support dynamic local cover image configurations
             let coverStyle = '';
-            if (book.backgroundImage) {
+            const hasImage = !!book.backgroundImage;
+
+            if (hasImage) {
                 let imgPath = book.backgroundImage;
                 // If it doesn't already reference folder pathing, prepend it locally
                 if (!imgPath.startsWith('backgroundImage/') && !imgPath.startsWith('http://') && !imgPath.startsWith('https://') && !imgPath.startsWith('./')) {
@@ -870,15 +873,29 @@
                 coverStyle = `background-image: url('${imgPath}'); background-size: cover; background-position: center;`;
             }
 
+            // Conditional overlay style based on image presence
+            const overlayClass = hasImage
+                ? "absolute inset-0 bg-slate-950/40 group-hover:bg-slate-950/20 transition-colors"
+                : "absolute inset-0 bg-slate-950/10 group-hover:bg-slate-950/0 transition-colors";
+
+            // Conditional background capsule classes for cover text overlay based on image presence
+            const catBadgeClass = hasImage
+                ? "text-[8px] font-extrabold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded tracking-wider uppercase truncate max-w-[65%]"
+                : "text-[8px] font-extrabold text-white tracking-wider uppercase truncate max-w-[65%] drop-shadow-sm";
+
+            const seriesBadgeClass = hasImage
+                ? "inline-block text-[8px] font-bold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full"
+                : "inline-block text-[8px] font-bold text-white/95 tracking-tight truncate max-w-full drop-shadow-sm";
+
             card.innerHTML = `
                 <!-- Dynamic gradient or image tactile cover block (h-20 for vertical cover styling) -->
                 <div class="h-20 bg-gradient-to-br ${style.gradient} relative p-2 flex flex-col justify-between overflow-hidden shrink-0" style="${coverStyle}">
                     <!-- Dark translucent overlay to guarantee typography and icon readability -->
-                    <div class="absolute inset-0 bg-slate-950/30 group-hover:bg-slate-950/15 transition-colors"></div>
+                    <div class="${overlayClass}"></div>
                     <div class="absolute -right-6 -bottom-6 w-16 h-16 bg-white/5 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500"></div>
 
                     <div class="flex justify-between items-center z-10 w-full gap-1">
-                        <span class="text-[7.5px] font-extrabold text-white bg-slate-950/85 border border-white/10 px-1.5 py-0.5 rounded tracking-wider uppercase truncate max-w-[65%]">
+                        <span class="${catBadgeClass}">
                             ${book.categories ? book.categories.split(';')[0] : 'STORY'}
                         </span>
                         <!-- Light white icon with drop shadow -->
@@ -888,7 +905,7 @@
                     <!-- Series details with light, high-contrast Slate Capsule -->
                     <div class="z-10 text-left w-full mt-auto">
                         ${book.series ? `
-                            <span class="inline-block text-[7.5px] font-bold text-white bg-slate-950/85 border border-white/10 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full">
+                            <span class="${seriesBadgeClass}">
                                 ${book.series} • Vol. ${volNum}
                             </span>
                         ` : ''}
@@ -898,20 +915,20 @@
                 <!-- Consolidated details metadata (flat design, no border separator) -->
                 <div class="p-2 flex-1 flex flex-col justify-between bg-slate-900/40">
                     <div class="space-y-0.5">
-                        <h3 class="text-[11px] font-bold text-slate-100 group-hover:text-brand-500 transition-colors leading-tight line-clamp-1" title="${book.title}">
+                        <h3 class="text-xs font-bold text-slate-100 group-hover:text-brand-500 transition-colors leading-tight line-clamp-1" title="${book.title}">
                             ${book.title}
                         </h3>
-                        <p class="text-[9.5px] text-slate-400 font-medium truncate">By ${book.authors}</p>
+                        <p class="text-[10.5px] text-slate-400 font-medium truncate">By ${book.authors}</p>
                     </div>
 
-                    <!-- Bottom statistics details -->
+                    <!-- Bottom statistics details (slightly increased font size and icons) -->
                     <div class="flex items-center justify-between pt-0.5">
-                        <span class="inline-flex items-center gap-1 text-[9px] text-slate-400">
-                            <i data-lucide="clock" class="w-2.5 h-2.5 text-slate-500"></i>
+                        <span class="inline-flex items-center gap-1 text-[10px] text-slate-400">
+                            <i data-lucide="clock" class="w-3 h-3 text-slate-500"></i>
                             ${lengthStr}
                         </span>
-                        <span class="inline-flex items-center gap-0.5 text-[9px] font-bold text-brand-500">
-                            <i data-lucide="star" class="w-2.5 h-2.5 fill-brand-500 text-brand-500"></i>
+                        <span class="inline-flex items-center gap-0.5 text-[10px] font-bold text-brand-500">
+                            <i data-lucide="star" class="w-3 h-3 fill-brand-500 text-brand-500"></i>
                             ${book.ratingOverall ? book.ratingOverall.toFixed(1) : '--'}
                         </span>
                     </div>
