@@ -49,7 +49,16 @@ Changes:
 - Incremented semantic version number to 5.7.0
 - Added a custom-designed vector favicon in SVG format inside a high-compatibility URI that matches the "book-open" dashboard brand mark
 
+Version: 5.8.0
+Changes:
+- Incremented semantic version number to 5.8.0
+- Converted fixed card height 'h-[195px]' to responsive 'min-h-[195px] h-auto'
+- Converted top cover block height 'h-[120px]' to responsive 'min-h-[120px] h-auto' to allow cards to automatically grow vertically if category pills wrap extensively
 
+Version: 5.9.0
+Changes:
+- Incremented semantic version number to 5.9.0
+- Updated 'catBadgeClass' inside 'createCompactGridCard' to use 'max-w-full' instead of 'max-w-[70%]' so category pills only truncate if they are too long for the entire available card container space
 
 
 
