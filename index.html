@@ -71,6 +71,10 @@
 
             <!-- Global Stats Summary -->
             <div class="flex items-center gap-6 text-sm text-slate-400">
+                <a href="generator.html" class="flex items-center gap-1.5 text-xs text-brand-500 hover:text-brand-400 transition-colors" title="Create a library JSON file from MP3 metadata">
+                    <i data-lucide="file-plus-2" class="w-4 h-4"></i>
+                    <span>Build Library JSON</span>
+                </a>
                 <div class="text-center sm:text-right">
                     <span class="text-xs uppercase tracking-wider text-slate-500 block">Total Runtime</span>
                     <span class="font-semibold text-slate-200" id="stat-total-time">0d 0h 0m</span>
@@ -151,7 +155,7 @@
                         <!-- Search Bar -->
                         <div class="relative lg:col-span-3">
                             <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                            <input type="text" id="search-input" placeholder="Search title, author, narrator, series..." 
+                            <input type="text" id="search-input" placeholder="Search title, author, narrator, series..."
                                    aria-label="Search Audiobook Catalog"
                                    class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 pl-10 pr-4 text-xs focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-slate-100 placeholder-slate-500 transition-all">
                         </div>
