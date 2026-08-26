@@ -21,7 +21,7 @@
                             600: '#d97706',
                             900: '#78350f',
                         },
-                        darkbg: '#0f172a',
+                        darkbg: '#0b0f19',
                         darkcard: '#1e293b'
                     }
                 }
@@ -69,7 +69,7 @@
     <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <div class="bg-brand-500 text-slate-950 p-2 rounded-lg font-bold flex items-center justify-center">
+                <div class="bg-brand-500 text-slate-950 p-2 rounded-lg font-bold flex items-center justify-center animate-pulse">
                     <i data-lucide="headphones" class="w-6 h-6"></i>
                 </div>
                 <div>
@@ -143,16 +143,16 @@
                 <!-- Search and Sorting Controls -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
                     <!-- Search Input -->
-                    <div class="relative lg:col-span-5">
+                    <div class="relative lg:col-span-4">
                         <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                        <input type="text" id="search-input" placeholder="Search by title, author, narrator, series..."
-                               class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-slate-100 placeholder-slate-500 transition-all">
+                        <input type="text" id="search-input" placeholder="Search title, author, narrator, series..."
+                               class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 pl-10 pr-4 text-xs focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-slate-100 placeholder-slate-500 transition-all">
                     </div>
 
-                    <!-- Sorters -->
-                    <div class="grid grid-cols-2 sm:flex items-center gap-3 lg:col-span-5">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <span class="text-xs text-slate-500 hidden sm:inline whitespace-nowrap">Sort by:</span>
+                    <!-- Sorters & Series Grouping -->
+                    <div class="grid grid-cols-2 sm:flex items-center gap-2.5 lg:col-span-6">
+                        <div class="flex items-center gap-1.5 w-full sm:w-auto">
+                            <span class="text-[10px] text-slate-500 uppercase tracking-wider hidden sm:inline whitespace-nowrap">Sort:</span>
                             <select id="sort-select" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-brand-500">
                                 <option value="rating">Highest Rating</option>
                                 <option value="length_desc">Duration (Longest First)</option>
@@ -161,23 +161,28 @@
                                 <option value="published">Date Published</option>
                             </select>
                         </div>
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <span class="text-xs text-slate-500 hidden sm:inline whitespace-nowrap">Category:</span>
+                        <div class="flex items-center gap-1.5 w-full sm:w-auto">
+                            <span class="text-[10px] text-slate-500 uppercase tracking-wider hidden sm:inline whitespace-nowrap">Genre:</span>
                             <select id="category-filter" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-brand-500">
                                 <option value="all">All Categories</option>
                             </select>
                         </div>
+                        <!-- Series Group Switch -->
+                        <button id="group-series-btn" title="Group books in a Series together" class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200 w-full sm:w-auto shrink-0">
+                            <i data-lucide="layers" class="w-4 h-4"></i>
+                            <span>Group Series</span>
+                        </button>
                     </div>
 
-                    <!-- Layout & Density Switcher -->
+                    <!-- Layout Selector -->
                     <div class="lg:col-span-2 flex justify-end gap-1.5 border-t border-slate-800 lg:border-t-0 pt-3 lg:pt-0">
-                        <button id="view-grid" title="Compact Grid" class="flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-500/30 bg-brand-500/10 text-brand-500 text-xs transition-all hover:bg-brand-500/20">
+                        <button id="view-grid" title="Compact Covers Grid" class="flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-500/30 bg-brand-500/10 text-brand-500 text-xs transition-all">
                             <i data-lucide="layout-grid" class="w-4 h-4"></i>
                             <span class="lg:hidden">Grid</span>
                         </button>
-                        <button id="view-list" title="Ultra-Compact Rows" class="flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200">
+                        <button id="view-list" title="Detailed List Table" class="flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200">
                             <i data-lucide="list" class="w-4 h-4"></i>
-                            <span class="lg:hidden">List Table</span>
+                            <span class="lg:hidden">List</span>
                         </button>
                     </div>
                 </div>
@@ -195,10 +200,11 @@
         <section id="library-container">
             <!-- Dynamic Grid or List will be generated here -->
             <div id="books-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
+
             <div id="books-list" class="hidden overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
-                        <tr class="bg-slate-900 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
+                        <tr class="bg-slate-900/90 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
                             <th class="p-3">Title & Series</th>
                             <th class="p-3">Author</th>
                             <th class="p-3">Narrator</th>
@@ -235,8 +241,8 @@
                 <!-- Core Details Grid -->
                 <div class="flex flex-col md:flex-row gap-5">
                     <!-- Dynamic Cover Visualizer -->
-                    <div id="modal-cover-art" class="w-32 h-32 md:w-40 md:h-40 rounded-xl flex flex-col justify-between p-3 shrink-0 shadow-lg text-slate-950">
-                        <i data-lucide="book" class="w-6 h-6 opacity-60"></i>
+                    <div id="modal-cover-art" class="w-32 h-32 md:w-40 md:h-40 rounded-xl flex flex-col justify-between p-3.5 shrink-0 shadow-lg text-slate-950">
+                        <i data-lucide="book" class="w-7 h-7 opacity-60"></i>
                         <span class="font-bold text-xs uppercase tracking-wider block text-right" id="modal-cover-cat">SCI-FI</span>
                     </div>
 
@@ -445,7 +451,7 @@
                 authors: "Scott Medbury",
                 narrators: "Adam Barr",
                 length: 1030,
-                description: "<p>The epic America Falls saga continues in this explosive Mega Collection read by the incomparable Adam Barr, featuring: ...</p>",
+                description: "<p>The epic America Falls saga continues in this explosive Mega Collection read by the incomparable Adam Barr...</p>",
                 publisher: "Anscot Publishing P/L",
                 series: "America Falls",
                 seriesOrder: "11-13 : America Falls",
@@ -477,7 +483,7 @@
                 authors: "Dennis E. Taylor",
                 narrators: "Ray Porter",
                 length: 596,
-                description: "<p>There's a reason <i>We Are Legion (We Are Bob)</i> was named Audible's Best Science Fiction Book of 2016...",
+                description: "<p>There's a reason <i>We Are Legion (We Are Bob)</i> was named Audible's Best Science Fiction Book of 2016...</p>",
                 publisher: "Audible Originals",
                 series: "Bobiverse",
                 seriesOrder: "1 : Bobiverse",
@@ -493,7 +499,7 @@
                 authors: "Dennis E. Taylor",
                 narrators: "Ray Porter",
                 length: 539,
-                description: "<p>The highly anticipated sequel to Audible's Best of 2016...",
+                description: "<p>The highly anticipated sequel to Audible's Best of 2016...</p>",
                 publisher: "Audible Originals",
                 series: "Bobiverse",
                 seriesOrder: "2 : Bobiverse",
@@ -509,7 +515,7 @@
                 authors: "Dennis E. Taylor",
                 narrators: "Ray Porter",
                 length: 476,
-                description: "<p>The epic and highly anticipated conclusion to the listener-favorite series...",
+                description: "<p>The epic and highly anticipated conclusion to the listener-favorite series...</p>",
                 publisher: "Audible Originals",
                 series: "Bobiverse",
                 seriesOrder: "3 : Bobiverse",
@@ -573,7 +579,7 @@
                 authors: "Matt Dinniman",
                 narrators: "Jeff Hays",
                 length: 1083,
-                description: "<p>New achievement! Total, utter failure. You failed a quest less than five minutes after you received it...</p>",
+                description: "<p>New achievement! Total, utter failure...</p>",
                 publisher: "Audible Studios",
                 series: "Dungeon Crawler Carl",
                 seriesOrder: "4 : Dungeon Crawler Carl",
@@ -589,7 +595,7 @@
                 authors: "Matt Dinniman",
                 narrators: "Jeff Hays",
                 length: 1413,
-                description: "<p>Attention. Attention. The gates are down. The hunters are loose. Run, run, run...</p>",
+                description: "<p>Attention. Attention. The gates are down...</p>",
                 publisher: "Audible Studios",
                 series: "Dungeon Crawler Carl",
                 seriesOrder: "5 : Dungeon Crawler Carl",
@@ -605,7 +611,7 @@
                 authors: "Matt Dinniman",
                 narrators: "Jeff Hays, Patrick Warburton, Travis Baldree, Annie Ellicott",
                 length: 1606,
-                description: "<p>A pantheon of forgotten gods. An old grudge between a talk show host, an heiress...</p>",
+                description: "<p>A pantheon of forgotten gods. An old grudge between a talk show host...</p>",
                 publisher: "Audible Studios",
                 series: "Dungeon Crawler Carl",
                 seriesOrder: "6 : Dungeon Crawler Carl",
@@ -653,7 +659,7 @@
                 authors: "Ryan Rimmel",
                 narrators: "Johnathan McClain",
                 length: 767,
-                description: "<p>One bad roll catapults them into a new world... Five friends, gamers for life...</p>",
+                description: "<p>One bad roll catapults them into a new world...</p>",
                 publisher: "Podium Audio",
                 series: "Fifth Era Apocalypse",
                 seriesOrder: "1 : Fifth Era Apocalypse",
@@ -701,7 +707,7 @@
                 authors: "Shirtaloon, Travis Deverell",
                 narrators: "Heath Miller",
                 length: 1479,
-                description: "<p>For all that Jason knows, life is amazing. But he's about to learn that all his new power, wealth...</p>",
+                description: "<p>For all that Jason knows, life is amazing. But he's about to learn that all his new power...</p>",
                 publisher: "Podium Audio",
                 series: "He Who Fights with Monsters",
                 seriesOrder: "3 : He Who Fights with Monsters",
@@ -749,7 +755,7 @@
                 authors: "Shirtaloon, Travis Deverell",
                 narrators: "Heath Miller",
                 length: 949,
-                description: "<p>The world teeters on the brink of destruction. The people who should be saving Earth...</p>",
+                description: "<p>The world teeters on the brink of destruction...</p>",
                 publisher: "Podium Audio",
                 series: "He Who Fights with Monsters",
                 seriesOrder: "6 : He Who Fights with Monsters",
@@ -765,7 +771,7 @@
                 authors: "Shirtaloon, Travis Deverell",
                 narrators: "Heath Miller",
                 length: 1119,
-                description: "<p>Jason arrives at a kingdom in peril and he's surprised to discover that it's not his job to save it...</p>",
+                description: "<p>Jason arrives at a kingdom in peril and he's surprised to discover...</p>",
                 publisher: "Podium Audio",
                 series: "He Who Fights with Monsters",
                 seriesOrder: "7 : He Who Fights with Monsters",
@@ -797,7 +803,7 @@
                 authors: "Shirtaloon, Travis Deverell",
                 narrators: "Heath Miller",
                 length: 1683,
-                description: "<p>With the Builder threat behind them, the time has finally come for Jason and his team...</p>",
+                description: "<p>With the Builder threat behind them, the time has finally come...</p>",
                 publisher: "Podium Audio",
                 series: "He Who Fights with Monsters",
                 seriesOrder: "9 : He Who Fights with Monsters",
@@ -813,7 +819,7 @@
                 authors: "Shirtaloon, Travis Deverell",
                 narrators: "Heath Miller",
                 length: 1518,
-                description: "<p>A subterranean power creates strange bedfellows for Jason and his friends...</p>",
+                description: "<p>A subterranean power creates strange bedfellows...</p>",
                 publisher: "Podium Audio",
                 series: "He Who Fights with Monsters",
                 seriesOrder: "10 : He Who Fights with Monsters",
@@ -845,7 +851,7 @@
                 authors: "Shirtaloon, Travis Deverell",
                 narrators: "Heath Miller",
                 length: 1166,
-                description: "<p>Twenty years ago, Jason was pulled into a world of magic and monsters...</p>",
+                description: "<p>Twenty years ago, Jason was pulled into a world of magic...</p>",
                 publisher: "Podium Audio",
                 series: "He Who Fights with Monsters",
                 seriesOrder: "12 : He Who Fights with Monsters",
@@ -893,7 +899,7 @@
                 authors: "Kyla Stone",
                 narrators: "Stacey Glemboski",
                 length: 2217,
-                description: "<p>Get the complete series in one audio bundle, with over 36 hours...</p>",
+                description: "<p>Get the complete series in one audio bundle...</p>",
                 publisher: "Paper Moon Press",
                 series: "Nuclear Dawn",
                 seriesOrder: "1-5 : Nuclear Dawn",
@@ -990,6 +996,7 @@
         let activeCategory = 'all';
         let searchQuery = '';
         let currentSort = 'rating';
+        let groupBySeries = false;
 
         // Styling palettes matching category genres dynamically
         const categoryGradients = {
@@ -1044,6 +1051,18 @@
 
             document.getElementById('view-list').addEventListener('click', () => {
                 setLayout('list');
+            });
+
+            // Series Group Toggle Action
+            const groupBtn = document.getElementById('group-series-btn');
+            groupBtn.addEventListener('click', () => {
+                groupBySeries = !groupBySeries;
+                if (groupBySeries) {
+                    groupBtn.className = "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-brand-500/30 bg-brand-500/10 text-brand-500 text-xs transition-all w-full sm:w-auto shrink-0";
+                } else {
+                    groupBtn.className = "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200 w-full sm:w-auto shrink-0";
+                }
+                render();
             });
 
             document.getElementById('clear-filters-btn').addEventListener('click', resetFilters);
@@ -1177,10 +1196,14 @@
             searchQuery = '';
             activeCategory = 'all';
             currentSort = 'rating';
+            groupBySeries = false;
 
             document.getElementById('search-input').value = '';
             document.getElementById('category-filter').value = 'all';
             document.getElementById('sort-select').value = 'rating';
+
+            const groupBtn = document.getElementById('group-series-btn');
+            groupBtn.className = "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200 w-full sm:w-auto shrink-0";
 
             updateFilterBadges();
             render();
@@ -1230,6 +1253,13 @@
             return result;
         }
 
+        // Helper to extract series volume number for numeric ordering
+        function getSeriesNumber(seriesOrder) {
+            if (!seriesOrder) return 999;
+            const match = seriesOrder.match(/\d+/);
+            return match ? parseInt(match[0], 10) : 999;
+        }
+
         function render() {
             const data = getFilteredAndSortedData();
             const gridContainer = document.getElementById('books-grid');
@@ -1244,30 +1274,157 @@
                 return;
             } else {
                 emptyState.classList.add('hidden');
-                if (currentLayout === 'grid') gridContainer.classList.remove('hidden');
-                else document.getElementById('books-list').classList.remove('hidden');
+                if (currentLayout === 'grid') {
+                    gridContainer.classList.remove('hidden');
+                    document.getElementById('books-list').classList.add('hidden');
+                } else {
+                    document.getElementById('books-list').classList.remove('hidden');
+                    gridContainer.classList.add('hidden');
+                }
             }
 
-            if (currentLayout === 'grid') {
-                gridContainer.innerHTML = '';
-                data.forEach((book, idx) => {
-                    gridContainer.appendChild(createCompactGridCard(book, idx));
-                });
+            if (groupBySeries) {
+                renderGrouped(data, gridContainer, listBody);
             } else {
-                listBody.innerHTML = '';
-                data.forEach((book, idx) => {
-                    listBody.appendChild(createListRow(book, idx));
-                });
+                renderFlat(data, gridContainer, listBody);
             }
 
             // Always update standard vector icons generated dynamically
             lucide.createIcons();
         }
 
-        // Creates short, ultra-clean vertical grid cards without repeating title and author
-        function createCompactGridCard(book, idx) {
+        function renderFlat(data, gridContainer, listBody) {
+            if (currentLayout === 'grid') {
+                gridContainer.innerHTML = '';
+                data.forEach(book => {
+                    gridContainer.appendChild(createCompactGridCard(book));
+                });
+            } else {
+                listBody.innerHTML = '';
+                data.forEach(book => {
+                    listBody.appendChild(createListRow(book));
+                });
+            }
+        }
+
+        function renderGrouped(data, gridContainer, listBody) {
+            // Group books by series name
+            const seriesGroups = {};
+            const standalones = [];
+
+            data.forEach(book => {
+                if (book.series && book.series.trim() !== '') {
+                    const sName = book.series.trim();
+                    if (!seriesGroups[sName]) {
+                        seriesGroups[sName] = [];
+                    }
+                    seriesGroups[sName].push(book);
+                } else {
+                    standalones.push(book);
+                }
+            });
+
+            // Sort books in each series group by their series Order chronological value
+            for (const sName in seriesGroups) {
+                seriesGroups[sName].sort((a, b) => {
+                    const aNum = getSeriesNumber(a.seriesOrder);
+                    const bNum = getSeriesNumber(b.seriesOrder);
+                    return aNum - bNum;
+                });
+            }
+
+            // Sort series alphabetically
+            const sortedSeriesNames = Object.keys(seriesGroups).sort((a, b) => a.localeCompare(b));
+
+            if (currentLayout === 'grid') {
+                gridContainer.innerHTML = '';
+
+                // Render groups in grid layout
+                sortedSeriesNames.forEach(sName => {
+                    const books = seriesGroups[sName];
+
+                    // Series Header Row spanning all columns natively
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = "col-span-full border-b border-slate-800 pb-1.5 mt-6 mb-2 flex justify-between items-end";
+                    headerDiv.innerHTML = `
+                        <h3 class="text-xs font-bold text-brand-500 flex items-center gap-1.5 tracking-wider uppercase">
+                            <i data-lucide="layers" class="w-4 h-4"></i>
+                            ${sName}
+                        </h3>
+                        <span class="text-[10px] text-slate-500 font-mono">${books.length} ${books.length === 1 ? 'Volume' : 'Volumes'}</span>
+                    `;
+                    gridContainer.appendChild(headerDiv);
+
+                    books.forEach(book => {
+                        gridContainer.appendChild(createCompactGridCard(book));
+                    });
+                });
+
+                // Standalones Section
+                if (standalones.length > 0) {
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = "col-span-full border-b border-slate-800 pb-1.5 mt-8 mb-2 flex justify-between items-end";
+                    headerDiv.innerHTML = `
+                        <h3 class="text-xs font-bold text-slate-400 flex items-center gap-1.5 tracking-wider uppercase">
+                            <i data-lucide="book" class="w-4 h-4"></i>
+                            Standalone Titles
+                        </h3>
+                        <span class="text-[10px] text-slate-500 font-mono">${standalones.length} ${standalones.length === 1 ? 'Book' : 'Books'}</span>
+                    `;
+                    gridContainer.appendChild(headerDiv);
+
+                    standalones.forEach(book => {
+                        gridContainer.appendChild(createCompactGridCard(book));
+                    });
+                }
+            } else {
+                // Grouped Table rendering
+                listBody.innerHTML = '';
+
+                sortedSeriesNames.forEach(sName => {
+                    const books = seriesGroups[sName];
+
+                    const headerRow = document.createElement('tr');
+                    headerRow.className = "bg-slate-900/30 text-slate-300";
+                    headerRow.innerHTML = `
+                        <td colspan="6" class="p-3 font-semibold border-y border-slate-800 text-xs text-brand-500">
+                            <div class="flex items-center justify-between">
+                                <span class="flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4"></i> ${sName}</span>
+                                <span class="text-[10px] text-slate-500 font-normal font-mono">${books.length} ${books.length === 1 ? 'Volume' : 'Volumes'}</span>
+                            </div>
+                        </td>
+                    `;
+                    listBody.appendChild(headerRow);
+
+                    books.forEach(book => {
+                        listBody.appendChild(createListRow(book));
+                    });
+                });
+
+                if (standalones.length > 0) {
+                    const headerRow = document.createElement('tr');
+                    headerRow.className = "bg-slate-900/30 text-slate-300";
+                    headerRow.innerHTML = `
+                        <td colspan="6" class="p-3 font-semibold border-y border-slate-800 text-xs text-slate-400">
+                            <div class="flex items-center justify-between">
+                                <span class="flex items-center gap-2"><i data-lucide="book" class="w-4 h-4"></i> Standalone Titles</span>
+                                <span class="text-[10px] text-slate-500 font-normal font-mono">${standalones.length} ${standalones.length === 1 ? 'Book' : 'Books'}</span>
+                            </div>
+                        </td>
+                    `;
+                    listBody.appendChild(headerRow);
+
+                    standalones.forEach(book => {
+                        listBody.appendChild(createListRow(book));
+                    });
+                }
+            }
+        }
+
+        // Creates snug tactile cover grid card with 52 (208px) locked height limit
+        function createCompactGridCard(book) {
             const card = document.createElement('div');
-            card.className = "group bg-slate-900/60 border border-slate-800/80 rounded-lg hover:border-slate-700/80 hover:bg-slate-900 transition-all duration-300 shadow-sm flex flex-col justify-between overflow-hidden cursor-pointer";
+            card.className = "group bg-slate-900/60 border border-slate-800/80 rounded-lg hover:border-slate-700/80 hover:bg-slate-900 transition-all duration-300 shadow-sm flex flex-col justify-between overflow-hidden cursor-pointer h-52";
             card.onclick = () => openModal(book);
 
             const style = getCategoryStyle(book.categories);
@@ -1276,34 +1433,46 @@
             const hoursLabel = hours > 0 ? `${hours}h ` : '';
             const lengthStr = `${hoursLabel}${mins}m`;
 
-            // Card HTML: Compact structure, 100px header, Title & Author exactly ONCE
+            // Card combines tactile header block and consolidated title metadata exactly once
             card.innerHTML = `
-                <!-- Sleek minimal cover header block -->
-                <div class="h-16 bg-gradient-to-r ${style.gradient} relative px-3 py-2 flex items-center justify-between overflow-hidden">
+                <!-- Miniature cover block -->
+                <div class="h-28 bg-gradient-to-br ${style.gradient} relative p-3 flex flex-col justify-between overflow-hidden shrink-0">
                     <div class="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-colors"></div>
-                    <i data-lucide="${style.icon}" class="w-5 h-5 text-slate-950/70 z-10"></i>
-                    <span class="text-[9px] font-bold text-slate-950/80 tracking-wider uppercase z-10 max-w-[70%] truncate">
-                        ${book.series ? book.series : (book.categories ? book.categories.split(';')[0] : '')}
-                    </span>
-                </div>
+                    <div class="absolute -right-6 -bottom-6 w-20 h-20 bg-white/10 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500"></div>
 
-                <!-- Book details: Snug and compact, title/author displayed exactly once -->
-                <div class="p-3 flex-1 flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-sm font-semibold text-slate-100 group-hover:text-brand-500 transition-colors leading-snug line-clamp-1" title="${book.title}">
-                            ${book.title}
-                        </h3>
-                        <p class="text-[11px] text-slate-400 font-medium truncate mt-0.5">By ${book.authors}</p>
-                        <p class="text-[10px] text-slate-500 truncate italic">Narrator: ${book.narrators}</p>
+                    <div class="flex justify-between items-start z-10">
+                        <i data-lucide="${style.icon}" class="w-5.5 h-5.5 text-slate-950/70 drop-shadow"></i>
+                        <span class="text-[9px] font-extrabold text-slate-950/80 bg-white/20 border border-white/20 px-1.5 py-0.5 rounded backdrop-blur-sm tracking-wider uppercase truncate max-w-[70%]">
+                            ${book.categories ? book.categories.split(';')[0] : 'STORY'}
+                        </span>
                     </div>
 
-                    <!-- Bottom inline stats -->
-                    <div class="flex items-center justify-between border-t border-slate-800/50 pt-2 mt-2">
+                    <!-- Volume Badge if Series is detected -->
+                    <div class="z-10 text-left">
+                        ${book.series ? `
+                            <span class="inline-block text-[9px] font-bold text-slate-950/90 bg-brand-500 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full">
+                                Vol. ${book.seriesOrder ? book.seriesOrder.split(':')[0].trim() : '#'}
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <!-- Consolidated details (title/author rendered exactly once) -->
+                <div class="p-3 flex-1 flex flex-col justify-between bg-slate-900/40 border-t border-slate-800/40">
+                    <div class="space-y-0.5">
+                        <h3 class="text-xs font-bold text-slate-100 group-hover:text-brand-500 transition-colors leading-tight line-clamp-1" title="${book.title}">
+                            ${book.title}
+                        </h3>
+                        <p class="text-[10px] text-slate-400 font-medium truncate">By ${book.authors}</p>
+                    </div>
+
+                    <!-- Bottom compact statistics strip -->
+                    <div class="flex items-center justify-between border-t border-slate-800/40 pt-1.5 mt-1">
                         <span class="inline-flex items-center gap-1 text-[10px] text-slate-400">
                             <i data-lucide="clock" class="w-3 h-3 text-slate-500"></i>
                             ${lengthStr}
                         </span>
-                        <span class="inline-flex items-center gap-0.5 text-[10px] font-semibold text-brand-500">
+                        <span class="inline-flex items-center gap-0.5 text-[10px] font-bold text-brand-500">
                             <i data-lucide="star" class="w-3 h-3 fill-brand-500 text-brand-500"></i>
                             ${book.ratingOverall ? book.ratingOverall.toFixed(1) : '--'}
                         </span>
@@ -1313,8 +1482,8 @@
             return card;
         }
 
-        // Creates extremely clean row item for List layout
-        function createListRow(book, idx) {
+        // Creates clean row item for List layout
+        function createListRow(book) {
             const row = document.createElement('tr');
             row.className = "hover:bg-slate-900/80 transition-colors duration-150 cursor-pointer text-slate-300";
             row.onclick = () => openModal(book);
@@ -1329,12 +1498,12 @@
                         <div class="w-1.5 h-6 rounded-full bg-gradient-to-b ${getCategoryStyle(book.categories).gradient} shrink-0"></div>
                         <div>
                             <span class="font-semibold text-slate-100 block max-w-xs sm:max-w-md truncate">${book.title}</span>
-                            ${book.subtitle ? `<span class="text-[10px] text-slate-500 block truncate">${book.subtitle}</span>` : ''}
+                            ${book.series ? `<span class="text-[9px] text-brand-500 font-medium block truncate">${book.series} #${book.seriesOrder ? book.seriesOrder.split(':')[0].trim() : ''}</span>` : ''}
                         </div>
                     </div>
                 </td>
-                <td class="p-3 text-slate-400 max-w-[120px] truncate">${book.authors}</td>
-                <td class="p-3 text-slate-500 max-w-[150px] truncate">${book.narrators}</td>
+                <td class="p-3 text-slate-400 max-w-[120px] truncate">By ${book.authors}</td>
+                <td class="p-3 text-slate-500 max-w-[150px] truncate">Narrator: ${book.narrators}</td>
                 <td class="p-3 text-center font-mono whitespace-nowrap text-slate-400">${lengthStr}</td>
                 <td class="p-3 text-center">
                     <span class="inline-flex items-center gap-0.5 text-brand-500 font-semibold font-mono">
