@@ -345,7 +345,9 @@
     function seriesValue(value) {
         if (Array.isArray(value)) return value.map(item => seriesValue(item)).filter(Boolean).join('; ');
         if (value && typeof value === 'object') return seriesValue(value.name || value.seriesName || value.title || value.series);
-        return typeof value === 'string' ? value.trim() : '';
+        if (typeof value !== 'string') return '';
+        const series = value.trim();
+        return /^https?:\/\//i.test(series) || /\|adbl\|/i.test(series) ? '' : series;
     }
 
     function seriesOrderValue(value) {
