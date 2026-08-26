@@ -383,4 +383,47 @@ AI Response:
 Output: restart_5_12_0-optimized.html
 NOTE: Gemini identified some styles that weren't used. It added some comments to some places. It did remove or edit some other comments that were helpful. Overall, I think it did a decent job of code review.
 
+Prompt 3:
+    - My Thinking: Gemini-suggested prompt. What if my library is very large.
+    - Prompt: "How can I further optimize the performance for very large libraries?"
+AI Response:
+    - "
+        To optimize a single-page HTML5 application for very large libraries (e.g., 5,000 to 10,000+ eBooks), senior developers focus on minimizing the **DOM footprint** and bypassing costly layout calculations.
+
+        Here are the primary architectural strategies to achieve this:
+
+        1. **Progressive Rendering (Infinite Scroll via Sentinel)**: Instead of rendering thousands of detailed DOM nodes simultaneously (which bloats memory and causes scrolling stutter), we render a small batch (e.g., 40 items) and dynamically append more as the user scrolls near the bottom of the page using a highly efficient, non-blocking browser API: the `IntersectionObserver`.
+        2. **Dynamic Image/Style Lazy Loading**: High-resolution cover images are only loaded or assigned to the DOM when they are about to enter the viewport, eliminating massive concurrent network requests and initial render lag.
+        3. **Data Slicing & Pre-filtering**: We slice the filtered dataset before sorting and grouping, ensuring that layout generation and Lucide icon parsing are restricted to visible elements only.
+        4. **Debounced Search and Input Filtering**: Pre-compiling search queries to prevent micro-reflows while typing.
+
+        I have updated our codebase to **Version 5.13.0** inside the interactive canvas, implementing a high-performance **Progressive Batch Rendering Engine** powered by an invisible scroll sentinel.
+
+        ### Performance Updates in Version 5.13.0:
+        * **Progressive Batch Rendering Engine**: The viewport initial paint load is capped to `40` elements. When sorting, filtering, or grouping is initiated, the application slices the sorted arrays before spawning nodes.
+        * **Non-Blocking Scroll Sentinel**: An invisible element combined with a clean `IntersectionObserver` auto-triggers the next slice of items only when the user scrolls near the bottom boundary.
+        * **Style Cover Lazy Loading**: Card background cover URLs are placed in a raw `data-lazy-cover` attribute. An active view observer triggers actual CSS mappings only when the card is within standard layout reach.
+    "
+Output: restart_5_13_0.html
+NOTE: I think my code has gotten so large that it's very slow for Gemini to rebuild. It's still building, but it's chugging. I wonder what token cost is now. I'll check later.
+
+
+Prompt 4:
+    - My Thinking: I forgot to fix verbiage about eBook vs Audiobook.
+    - Prompt: "I have realized this isn't about eBooks. It's about Audiobooks. Can we please update the site to reference "Audiobook" instead of "eBook"?"
+AI Response:
+    - "
+        I will update all references from "eBook" to "Audiobook" throughout the entire application—including headers, statistics cards, tooltips, interactive labels, variable configurations, fallback states, and console logs.
+
+        Here is the updated and fully optimized **Audiobook Library Dashboard** (Version 5.14.0).
+
+        ### Summary of terminology updates:
+        * **UI Text & Titles**: Fully replaced every visual instance of "eBook" and "eBooks" with "Audiobook" and "Audiobooks" across page titles, headers, navigation elements, tooltips, loading/error states, and active cards.
+        * **Metadata & Accessibility Labels**: Updated screen reader labels (`aria-label`, `title`) to match the new media context (e.g., `aria-label="Search Audiobook Catalog"`).
+        * **Dynamic Counter Logic**: Adjusted script variables so dynamically calculated quantities return as `X audiobooks` in the global header instead of standard `books`.
+        * **Lucide Icon Integration**: Remapped default generic bookmark/book fallback icons to premium headphones (`headphones`) where applicable to keep the cinematic visual identity aligned with an audio context.
+    "
+Output: restart_5_14_0.html
+
+
 
