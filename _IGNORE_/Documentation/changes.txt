@@ -1,0 +1,7 @@
+Version: 5.1.0
+Changes:
+- Incremented semantic version number to 5.1.0
+- Scaled up grid card font sizes (Titles to text-sm, authors to text-xs, stats to text-[11px])
+- Micro-adjusted card height to 155px to ensure no text overflows or clipping occurs
+
+
