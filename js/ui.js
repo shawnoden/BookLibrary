@@ -1,7 +1,6 @@
 /**
  * Audiobook Library UI & Render Module
  * Manages DOM manipulation, lazy loading observers, modals, and dynamic progress metrics.
- * Renders UI nodes dynamically, handles lists and grids, manages animation frames for the media player, and updates layout changes.
  */
 window.AudiobookApp = window.AudiobookApp || {};
 
@@ -297,7 +296,7 @@ window.AudiobookApp.ui = {
         const state = window.AudiobookApp.state;
         const utils = window.AudiobookApp.utils;
         const card = document.createElement('article');
-        
+
         // Listen tracking visualization modifiers
         const isListened = state.listenedSet.has(book.asin);
         const listenedBgModifier = isListened ? 'border-emerald-500/30 bg-emerald-950/5' : 'border-slate-800/80 bg-slate-900/60';
@@ -416,10 +415,10 @@ window.AudiobookApp.ui = {
         const state = window.AudiobookApp.state;
         const utils = window.AudiobookApp.utils;
         const row = document.createElement('tr');
-        
+
         const isListened = state.listenedSet.has(book.asin);
         const progressPercentage = state.playbackProgressMap[book.asin] || 0;
-        
+
         row.className = `${isListened ? 'bg-emerald-950/5 hover:bg-emerald-950/10' : 'hover:bg-slate-900/80'} transition-colors duration-150 cursor-pointer text-slate-300`;
         row.onclick = () => this.openModal(book);
 
@@ -614,19 +613,21 @@ window.AudiobookApp.ui = {
             actionSection.classList.add('hidden');
         }
 
-        // Listened Toggle setup inside modal
+        // Listened Toggle setup inside modal (Fixed to prevent querySelector null references)
         const listenedBtn = document.getElementById('modal-listened-btn');
         const updateListenedButtonUI = () => {
             const isCompleted = state.listenedSet.has(book.asin);
+            const iconName = isCompleted ? 'check-circle' : 'check';
+            const btnText = isCompleted ? 'Completed' : 'Mark Completed';
+            
             if (isCompleted) {
                 listenedBtn.className = "w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-500 text-slate-950 font-bold text-xs rounded-lg transition-all shadow-md active:scale-95";
-                listenedBtn.querySelector('span').textContent = "Listened";
-                listenedBtn.querySelector('i').setAttribute('data-lucide', 'check-circle');
             } else {
                 listenedBtn.className = "w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg transition-all border border-slate-700 shadow-sm active:scale-95";
-                listenedBtn.querySelector('span').textContent = "Mark Listened";
-                listenedBtn.querySelector('i').setAttribute('data-lucide', 'check');
             }
+            
+            // Overwriting absolute inner markup template prevents querySelector reference bugs
+            listenedBtn.innerHTML = `<i data-lucide="${iconName}" class="w-3.5 h-3.5"></i> <span>${btnText}</span>`;
             lucide.createIcons({ node: listenedBtn });
         };
         updateListenedButtonUI();
