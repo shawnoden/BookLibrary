@@ -4,1121 +4,1421 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Audible Library Dashboard</title>
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons for clean vector glyphs -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        audible: {
-                            base: '#111827',
-                            card: '#1f2937',
-                            accent: '#f59e0b',
-                            accentHover: '#d97706',
-                            textMuted: '#9ca3af'
-                        }
+                        brand: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            500: '#f59e0b', // Audible Orange
+                            600: '#d97706',
+                            900: '#78350f',
+                        },
+                        darkbg: '#0f172a',
+                        darkcard: '#1e293b'
                     }
                 }
             }
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
             background-color: #0b0f19;
         }
-        /* Custom scrollbar */
+        /* Custom scrollbar for modern feel */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #0b0f19;
+            background: #0f172a;
         }
         ::-webkit-scrollbar-thumb {
-            background: #1f2937;
+            background: #334155;
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #374151;
+            background: #475569;
+        }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
     </style>
 </head>
-<body class="text-gray-100 min-h-screen pb-12">
+<body class="text-slate-100 min-h-screen pb-12">
 
-    <!-- Header -->
-    <header class="border-b border-gray-800 bg-gray-950/70 backdrop-blur sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <!-- Audible Logo Icon Representational SVG -->
-                <svg class="w-8 h-8 text-amber-500 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-4h2v4zm0-6H9V8h2v2zm4 6h-2v-4h2v4zm0-6h-2V8h2v2z" opacity=".2"/>
-                    <path d="M19.16 13c-.09-.32-.23-.62-.41-.9l1.45-1.45-1.41-1.41-1.45 1.45c-.28-.18-.58-.32-.9-.41V8h-2v1.73c-.32.09-.62.23-.9.41L11.5 8.69l-1.41 1.41 1.45 1.45c-.18.28-.32.58-.41.9H8v2h1.73c.09.32.23.62.41.9l-1.45 1.45 1.41 1.41 1.45-1.45c.28.18.58.32.9.41V16h2v-1.73c.32-.09.62-.23.9-.41l1.45 1.45 1.41-1.41-1.45-1.45c.18-.28.32-.58.41-.9H16v-2h1.73c.09-.32.23-.62.41-.9l1.45 1.45-1.41-1.41-1.45-1.45c.28-.18.58-.32.9-.41zm-6.16 2c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/>
-                </svg>
-                <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500 bg-clip-text text-transparent">Audible Library</span>
+    <!-- Header & Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-brand-500 text-slate-950 p-2 rounded-lg font-bold flex items-center justify-center">
+                    <i data-lucide="headphones" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        Audible Archive <span class="text-xs bg-slate-800 text-brand-500 border border-brand-500/20 px-2 py-0.5 rounded-full">2026</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Interactive Collection Explorer</p>
+                </div>
             </div>
-            <div class="text-xs text-gray-400 font-medium px-3 py-1 bg-gray-900 border border-gray-800 rounded-full">
-                Updated: 2026-08-19
+
+            <!-- Quick Global Stats Summary -->
+            <div class="flex items-center gap-6 text-sm text-slate-400">
+                <div class="text-center sm:text-right">
+                    <span class="text-xs uppercase tracking-wider text-slate-500 block">Total Listening</span>
+                    <span class="font-semibold text-slate-200" id="stat-total-time">0h</span>
+                </div>
+                <div class="h-8 w-px bg-slate-800"></div>
+                <div class="text-center sm:text-right">
+                    <span class="text-xs uppercase tracking-wider text-slate-500 block">Library Size</span>
+                    <span class="font-semibold text-slate-200" id="stat-book-count">0 books</span>
+                </div>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-8">
-        
-        <!-- Key stats dashboard -->
-        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-gray-900/60 border border-gray-800/80 rounded-2xl p-5 flex flex-col justify-between">
-                <span class="text-xs text-gray-400 font-semibold tracking-wider uppercase">Total Books</span>
-                <div class="flex items-baseline space-x-1 mt-2">
-                    <span id="stat-total-books" class="text-3xl font-extrabold text-white">--</span>
-                    <span class="text-gray-400 text-sm">audiobooks</span>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+
+        <!-- Dashboard Stats Section -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+                <div class="p-3 bg-brand-500/10 rounded-lg text-brand-500">
+                    <i data-lucide="book-open" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Total Audiobooks</p>
+                    <p class="text-xl font-bold text-slate-100" id="card-count">0</p>
                 </div>
             </div>
-            <div class="bg-gray-900/60 border border-gray-800/80 rounded-2xl p-5 flex flex-col justify-between">
-                <span class="text-xs text-gray-400 font-semibold tracking-wider uppercase">Listening Time</span>
-                <div class="flex flex-col mt-2">
-                    <div id="stat-total-time" class="text-2xl font-extrabold text-white leading-tight">--</div>
-                    <span class="text-xs text-amber-500 mt-1" id="stat-total-mins">-- total minutes</span>
+            <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+                <div class="p-3 bg-emerald-500/10 rounded-lg text-emerald-500">
+                    <i data-lucide="clock" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Listening Time</p>
+                    <p class="text-xl font-bold text-slate-100" id="card-hours">0h</p>
                 </div>
             </div>
-            <div class="bg-gray-900/60 border border-gray-800/80 rounded-2xl p-5 flex flex-col justify-between">
-                <span class="text-xs text-gray-400 font-semibold tracking-wider uppercase">Average Rating</span>
-                <div class="flex items-baseline space-x-1 mt-2">
-                    <span id="stat-avg-rating" class="text-3xl font-extrabold text-white">--</span>
-                    <span class="text-amber-400 text-lg">★</span>
+            <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+                <div class="p-3 bg-amber-500/10 rounded-lg text-amber-500">
+                    <i data-lucide="star" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Average Rating</p>
+                    <p class="text-xl font-bold text-slate-100" id="card-rating">0.0</p>
                 </div>
             </div>
-            <div class="bg-gray-900/60 border border-gray-800/80 rounded-2xl p-5 flex flex-col justify-between">
-                <span class="text-xs text-gray-400 font-semibold tracking-wider uppercase">Longest Title</span>
-                <div class="flex flex-col mt-1 truncate">
-                    <span id="stat-longest-title" class="text-sm font-bold text-white truncate">--</span>
-                    <span id="stat-longest-hours" class="text-xs text-gray-400 mt-0.5">--</span>
+            <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+                <div class="p-3 bg-purple-500/10 rounded-lg text-purple-500">
+                    <i data-lucide="award" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Longest Listen</p>
+                    <p class="text-sm font-bold text-slate-100 truncate w-32 md:w-40" id="card-longest">None</p>
                 </div>
             </div>
         </section>
 
-        <!-- Main Search and Filters -->
-        <section class="bg-gray-900/40 border border-gray-800 p-6 rounded-2xl space-y-6">
-            <div class="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
-                <!-- Search -->
-                <div class="relative flex-1">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </span>
-                    <input type="text" id="search-input" placeholder="Search by title, author, narrator, series..." class="w-full bg-gray-950/80 border border-gray-800 rounded-xl py-3 pl-10 pr-4 text-sm text-gray-200 focus:outline-none focus:border-amber-500 placeholder-gray-500 transition">
-                </div>
-                
-                <!-- Sort and Filter Quick Actions -->
-                <div class="flex flex-wrap gap-3 items-center">
-                    <div class="flex items-center space-x-2 bg-gray-950/80 border border-gray-800 rounded-xl px-3 py-1.5">
-                        <span class="text-xs text-gray-500 font-medium">Sort By:</span>
-                        <select id="sort-select" class="bg-transparent text-sm text-gray-300 focus:outline-none cursor-pointer">
-                            <option value="default" class="bg-gray-900">Recommended</option>
-                            <option value="rating-desc" class="bg-gray-900">Rating (High to Low)</option>
-                            <option value="length-desc" class="bg-gray-900">Length (Longest First)</option>
-                            <option value="length-asc" class="bg-gray-900">Length (Shortest First)</option>
-                            <option value="date-desc" class="bg-gray-900">Date Published (Newest)</option>
-                            <option value="title-asc" class="bg-gray-900">Title (A-Z)</option>
-                        </select>
+        <!-- Search, Filter & Layout Control Area -->
+        <section class="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-6 shadow-xl">
+            <div class="flex flex-col gap-4">
+                <!-- Search and Sorting Controls -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
+                    <!-- Search Input -->
+                    <div class="relative lg:col-span-5">
+                        <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                        <input type="text" id="search-input" placeholder="Search by title, author, narrator, series..."
+                               class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-slate-100 placeholder-slate-500 transition-all">
                     </div>
 
-                    <button id="reset-btn" class="text-xs font-semibold px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl transition text-gray-300">
-                        Clear Filters
-                    </button>
-                </div>
-            </div>
+                    <!-- Sorters -->
+                    <div class="grid grid-cols-2 sm:flex items-center gap-3 lg:col-span-5">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <span class="text-xs text-slate-500 hidden sm:inline whitespace-nowrap">Sort by:</span>
+                            <select id="sort-select" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-brand-500">
+                                <option value="rating">Highest Rating</option>
+                                <option value="length_desc">Duration (Longest First)</option>
+                                <option value="length_asc">Duration (Shortest First)</option>
+                                <option value="title">Title (A-Z)</option>
+                                <option value="published">Date Published</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <span class="text-xs text-slate-500 hidden sm:inline whitespace-nowrap">Category:</span>
+                            <select id="category-filter" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-brand-500">
+                                <option value="all">All Categories</option>
+                            </select>
+                        </div>
+                    </div>
 
-            <!-- Categories and Authors Filter badging area -->
-            <div class="border-t border-gray-800/60 pt-4">
-                <span class="text-xs text-gray-400 font-semibold uppercase tracking-wider block mb-3">Categories</span>
-                <div id="category-badges" class="flex flex-wrap gap-2">
-                    <!-- Dynamic Badges -->
+                    <!-- Layout & Density Switcher -->
+                    <div class="lg:col-span-2 flex justify-end gap-1.5 border-t border-slate-800 lg:border-t-0 pt-3 lg:pt-0">
+                        <button id="view-grid" title="Compact Grid" class="flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-500/30 bg-brand-500/10 text-brand-500 text-xs transition-all hover:bg-brand-500/20">
+                            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                            <span class="lg:hidden">Grid</span>
+                        </button>
+                        <button id="view-list" title="Ultra-Compact Rows" class="flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200">
+                            <i data-lucide="list" class="w-4 h-4"></i>
+                            <span class="lg:hidden">List Table</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Filter Badges Area -->
+                <div id="active-filters-container" class="hidden flex flex-wrap gap-2 items-center text-xs">
+                    <span class="text-slate-500">Active Filters:</span>
+                    <div id="filter-badges" class="flex flex-wrap gap-1.5"></div>
+                    <button id="clear-filters-btn" class="text-brand-500 hover:underline hover:text-brand-600 ml-1">Clear all</button>
                 </div>
             </div>
         </section>
 
-        <!-- Library Grid Section -->
-        <section>
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-lg font-bold text-gray-300 flex items-center space-x-2">
-                    <span>Audiobooks</span>
-                    <span id="results-count" class="text-xs text-amber-500 px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-full font-bold">--</span>
-                </h2>
-                <div class="flex items-center space-x-2 text-xs text-gray-500">
-                    <span>Showing filtered results</span>
-                </div>
+        <!-- Main Books Area -->
+        <section id="library-container">
+            <!-- Dynamic Grid or List will be generated here -->
+            <div id="books-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
+            <div id="books-list" class="hidden overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-900 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
+                            <th class="p-3">Title & Series</th>
+                            <th class="p-3">Author</th>
+                            <th class="p-3">Narrator</th>
+                            <th class="p-3 text-center">Length</th>
+                            <th class="p-3 text-center">Rating</th>
+                            <th class="p-3 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="books-list-body" class="divide-y divide-slate-800"></tbody>
+                </table>
             </div>
 
-            <!-- Books Grid -->
-            <div id="books-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- JavaScript renders books dynamically here -->
-            </div>
-
-            <!-- Empty State -->
-            <div id="empty-state" class="hidden py-20 flex flex-col items-center justify-center text-center space-y-4">
-                <div class="p-4 bg-gray-900/60 rounded-full text-gray-600 border border-gray-800">
-                    <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                </div>
-                <h3 class="text-lg font-bold text-gray-300">No audiobooks found</h3>
-                <p class="text-sm text-gray-500 max-w-md">We couldn't find any titles matching your search criteria. Try removing some filters or typing different keywords.</p>
+            <!-- Empty Search State -->
+            <div id="empty-state" class="hidden text-center py-16 bg-slate-900/20 rounded-xl border border-slate-800 border-dashed">
+                <i data-lucide="book-x" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
+                <h3 class="text-lg font-semibold text-slate-300">No books found</h3>
+                <p class="text-sm text-slate-500 mt-1">Try resetting your search filters or choosing another category.</p>
+                <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg transition-all">Reset All Filters</button>
             </div>
         </section>
     </main>
 
-    <!-- Interactive Book Details Modal -->
-    <div id="book-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity duration-300 opacity-0">
-        <div class="bg-gray-900 border border-gray-800 w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl relative max-h-[90vh] flex flex-col">
-            <!-- Close Button -->
-            <button onclick="closeModal()" class="absolute top-4 right-4 z-10 p-2 bg-gray-950/80 hover:bg-gray-800 rounded-full text-gray-400 hover:text-white transition border border-gray-800">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
+    <!-- Unified Cinematic Book Detail Drawer / Modal -->
+    <div id="detail-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl transition-all scale-95 duration-300 transform" id="modal-card">
+            <!-- Top Color Bar -->
+            <div id="modal-gradient-bar" class="h-3 w-full bg-gradient-to-r from-brand-500 to-amber-600"></div>
 
-            <!-- Modal Content (Scrollable Container) -->
-            <div class="overflow-y-auto p-6 md:p-8 flex-1">
-                <div class="flex flex-col md:flex-row gap-6">
-                    <!-- Stylized Cover Visualizer (Big) -->
-                    <div class="w-full md:w-1/3 flex-shrink-0">
-                        <div id="modal-cover" class="aspect-square w-full rounded-2xl flex flex-col justify-between p-5 relative overflow-hidden shadow-lg border border-gray-700/50">
-                            <!-- Overlay effect -->
-                            <div class="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/80 z-0"></div>
-                            
-                            <!-- Header spine graphic placeholder -->
-                            <div class="w-1 h-full bg-white/10 absolute left-0 top-0 bottom-0 z-1"></div>
-                            
-                            <span id="modal-cover-badge" class="relative z-10 self-start text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 bg-black/60 backdrop-blur border border-white/15 rounded-full text-white">CATEGORY</span>
-                            
-                            <div class="relative z-10 mt-auto space-y-2">
-                                <h3 id="modal-cover-title" class="font-extrabold text-lg text-white leading-tight line-clamp-2">Book Title</h3>
-                                <p id="modal-cover-author" class="text-xs text-amber-400 font-semibold line-clamp-1">Author Name</p>
-                            </div>
-                        </div>
+            <div class="p-6 relative">
+                <button onclick="closeModal()" class="absolute top-4 right-4 p-1 rounded-full bg-slate-950/40 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+
+                <!-- Core Details Grid -->
+                <div class="flex flex-col md:flex-row gap-5">
+                    <!-- Dynamic Cover Visualizer -->
+                    <div id="modal-cover-art" class="w-32 h-32 md:w-40 md:h-40 rounded-xl flex flex-col justify-between p-3 shrink-0 shadow-lg text-slate-950">
+                        <i data-lucide="book" class="w-6 h-6 opacity-60"></i>
+                        <span class="font-bold text-xs uppercase tracking-wider block text-right" id="modal-cover-cat">SCI-FI</span>
                     </div>
 
-                    <!-- Book Info -->
-                    <div class="flex-1 space-y-4">
-                        <div>
-                            <span id="modal-series-badge" class="hidden inline-flex items-center text-xs font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-md mb-2"></span>
-                            <h1 id="modal-title" class="text-2xl md:text-3xl font-extrabold text-white leading-tight">Book Title</h1>
-                            <p id="modal-subtitle" class="text-sm text-gray-400 mt-1"></p>
-                        </div>
+                    <!-- Book Metadata -->
+                    <div class="flex-1">
+                        <span id="modal-series-badge" class="inline-block text-[10px] bg-brand-500/10 border border-brand-500/20 text-brand-500 font-semibold px-2 py-0.5 rounded-md mb-1.5"></span>
+                        <h2 id="modal-title" class="text-xl font-bold text-white tracking-tight"></h2>
+                        <p id="modal-subtitle" class="text-xs text-slate-400 mt-0.5 mb-2.5 italic"></p>
 
-                        <div class="grid grid-cols-2 gap-4 border-y border-gray-800 py-3">
-                            <div>
-                                <span class="text-xs text-gray-500 block">Author</span>
-                                <span id="modal-author" class="text-sm font-semibold text-gray-200"></span>
-                            </div>
-                            <div>
-                                <span class="text-xs text-gray-500 block">Narrator(s)</span>
-                                <span id="modal-narrator" class="text-sm font-semibold text-gray-200"></span>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-3">
-                            <div class="bg-gray-950/60 p-3 rounded-xl text-center border border-gray-800">
-                                <span class="text-xs text-gray-500 block">Length</span>
-                                <span id="modal-length" class="text-sm font-extrabold text-gray-200"></span>
-                            </div>
-                            <div class="bg-gray-950/60 p-3 rounded-xl text-center border border-gray-800">
-                                <span class="text-xs text-gray-500 block">Released</span>
-                                <span id="modal-date" class="text-sm font-extrabold text-gray-200"></span>
-                            </div>
-                            <div class="bg-gray-950/60 p-3 rounded-xl text-center border border-gray-800">
-                                <span class="text-xs text-gray-500 block">Publisher</span>
-                                <span id="modal-publisher" class="text-sm font-bold text-gray-200 truncate block px-1" title=""></span>
-                            </div>
-                        </div>
-
-                        <!-- Ratings Breakdown -->
-                        <div class="bg-gray-950/40 p-4 border border-gray-800 rounded-2xl space-y-3">
-                            <h3 class="text-xs font-bold tracking-wider text-gray-400 uppercase">Community Ratings</h3>
-                            <div class="space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs text-gray-300">Overall Rating</span>
-                                    <div class="flex items-center space-x-2">
-                                        <div class="flex text-amber-500" id="rating-overall-stars"></div>
-                                        <span class="text-xs font-bold text-gray-200" id="rating-overall-value"></span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs text-gray-400">Narrator Performance</span>
-                                    <div class="flex items-center space-x-2">
-                                        <div class="flex text-amber-500" id="rating-perf-stars"></div>
-                                        <span class="text-xs text-gray-300" id="rating-perf-value"></span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs text-gray-400">Story Rating</span>
-                                    <div class="flex items-center space-x-2">
-                                        <div class="flex text-amber-500" id="rating-story-stars"></div>
-                                        <span class="text-xs text-gray-300" id="rating-story-value"></span>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="space-y-1.5 text-xs text-slate-300 border-t border-slate-800/80 pt-2.5">
+                            <p><span class="text-slate-500">Author:</span> <strong id="modal-author" class="text-slate-100"></strong></p>
+                            <p><span class="text-slate-500">Narrator:</span> <span id="modal-narrator"></span></p>
+                            <p><span class="text-slate-500">Publisher:</span> <span id="modal-publisher" class="text-slate-400"></span></p>
+                            <p><span class="text-slate-500">Published:</span> <span id="modal-published-date" class="text-slate-400"></span></p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Description Area -->
-                <div class="mt-6 border-t border-gray-800 pt-6">
-                    <h3 class="text-sm font-bold tracking-wider text-gray-400 uppercase mb-3">Publisher Summary</h3>
-                    <div id="modal-description" class="text-sm text-gray-300 leading-relaxed space-y-4 max-h-[300px] overflow-y-auto pr-2 bg-gray-950/20 p-4 border border-gray-800/50 rounded-xl">
-                        <!-- Filled dynamically -->
+                <!-- Stats Breakdown Cards -->
+                <div class="grid grid-cols-3 gap-3 my-5 border-t border-b border-slate-800 py-3.5">
+                    <div class="text-center">
+                        <span class="text-[10px] text-slate-500 uppercase block tracking-wider mb-1">Duration</span>
+                        <div class="inline-flex items-center gap-1 text-slate-200">
+                            <i data-lucide="hourglass" class="w-3.5 h-3.5 text-emerald-500"></i>
+                            <span class="text-xs font-semibold" id="modal-duration">--</span>
+                        </div>
+                    </div>
+                    <div class="text-center border-l border-r border-slate-800">
+                        <span class="text-[10px] text-slate-500 uppercase block tracking-wider mb-1">Story Rating</span>
+                        <div class="inline-flex items-center gap-1 text-slate-200">
+                            <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-500 text-amber-500"></i>
+                            <span class="text-xs font-semibold" id="modal-rating-story">--</span>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <span class="text-[10px] text-slate-500 uppercase block tracking-wider mb-1">Performance</span>
+                        <div class="inline-flex items-center gap-1 text-slate-200">
+                            <i data-lucide="mic" class="w-3.5 h-3.5 text-purple-500"></i>
+                            <span class="text-xs font-semibold" id="modal-rating-perf">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Publisher Description Content -->
+                <div>
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Publisher Description</h3>
+                    <div id="modal-description" class="text-xs text-slate-300 leading-relaxed max-h-48 overflow-y-auto bg-slate-950 p-3 rounded-lg border border-slate-800/60 pr-2">
+                        <!-- Raw HTML injected here -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Script Block & Complete JSON Library Payload -->
+    <!-- Data Injection & Application Scripts -->
     <script>
-        // Directly mapped Audible library database
-        const rawLibrary = [
+        // Database raw from XLSX parsing
+        const libraryData = [
             {
-                "Title": "Flybot",
-                "Subtitle": "",
-                "Authors": "Dennis E. Taylor",
-                "Narrators": "Ray Porter",
-                "Length In Minutes": 577,
-                "Description": "<p><b>Mysterious tech, a devious AI and a couple of scientists in over their heads collide in the latest sci-fi adventure from the number one best-selling author of the Bobiverse series.</b></p> <p>Physicist Philip Moray is having a good day. He’s chipping away at his big work project. The lunch in the cafeteria is at least edible. And he’s looking forward to his end-of-the-day drink and a soak in the hot tub.</p> <p>Then, a strange device turns up in his office. A piece of technology he has never seen before–and shouldn’t even exist.</p> <p>Suddenly, corpses start turning up, eco-activists go on the attack, random people suffer bizarre symptoms. And every time the authorities get a lead, it traces right back to Philip and his colleague, Celia Hunt.</p> <p>Then, a mysterious caller contacts Philip–and, suddenly, staying out of jail is the very least of his problems.</p> <p>Apparently, that hot tub’s going to have to wait.</p>",
-                "Publisher": "Audible Originals",
-                "Series Names": "",
-                "Series Order": "",
-                "Community Rating: Overall": 4.58094358444214,
-                "Community Rating: Performance": 4.8339729309082,
-                "Community Rating: Story": 4.51666307449341,
-                "Date Published": "2025-06-26",
-                "Categories": "Adventure"
+                title: "Flybot",
+                subtitle: "",
+                authors: "Dennis E. Taylor",
+                narrators: "Ray Porter",
+                length: 577,
+                description: "<p><b>Mysterious tech, a devious AI and a couple of scientists in over their heads collide in the latest sci-fi adventure from the number one best-selling author of the Bobiverse series.</b></p> <p>Physicist Philip Moray is having a good day. He’s chipping away at his big work project. The lunch in the cafeteria is at least edible. And he’s looking forward to his end-of-the-day drink and a soak in the hot tub.</p> <p>Then, a strange device turns up in his office. A piece of technology he has never seen before–and shouldn’t even exist.</p> <p>Suddenly, corpses start turning up, eco-activists go on the attack, random people suffer bizarre symptoms. And every time the authorities get a lead, it traces right back to Philip and his colleague, Celia Hunt.</p> <p>Then, a mysterious caller contacts Philip–and, suddenly, staying out of jail is the very least of his problems.</p> <p>Apparently, that hot tub’s going to have to wait.</p>",
+                publisher: "Audible Originals",
+                series: "",
+                seriesOrder: "",
+                ratingOverall: 4.58094358444214,
+                ratingPerformance: 4.8339729309082,
+                ratingStory: 4.51666307449341,
+                datePublished: "2025-06-26",
+                categories: "Adventure"
             },
             {
-                "Title": "God's Junk Drawer",
-                "Subtitle": "",
-                "Authors": "Peter Clines",
-                "Narrators": "Ray Porter",
-                "Length In Minutes": 1002,
-                "Description": "<p>God’s Junk Drawer is a mind-bending tale of mystery and adventure set at the dawn of time.</p> <p>Welcome to the Valley …</p> <p>Forty years ago, the Gather family—James, his daughter Beau, and his son Billy—vanished during a whitewater rafting trip and were presumed dead.</p> <p>Five years later, Billy reappeared on the far side of the world, telling an impossible tale of a primordial valley populated by dinosaurs, aliens, Neanderthals, and androids. Little Billy became the punchline of so very many jokes, until he finally faded from the public eye.</p> <p>Now, a group of graduate astronomy students follow their professor, Noah Barnes, up a mountain for what they believe is a simple stargazing trip. But they’re about to travel a lot farther than they planned …</p> <p>Noah—the now grown Billy Gather—has finally figured out how to get back to the Valley. Accidentally bringing his students along with him, he’s confident he can get everyone back home, safe and sound.</p> <p>But the Valley is a puzzle—one it turns out Noah hasn’t figured out—and they’ll need to solve it together if there’s any chance of making it out alive.</p> <p>Pulling from Earth’s past, future, and beyond, Peter Clines has created a complex, dangerous world, navigated by a dynamic ensemble cast, and a story that is thrilling as it is funny and heartfelt.</p>",
-                "Publisher": "Audible Studios",
-                "Series Names": "",
-                "Series Order": "",
-                "Community Rating: Overall": 4.52120733261108,
-                "Community Rating: Performance": 4.81176471710205,
-                "Community Rating: Story": 4.48154163360596,
-                "Date Published": "2026-01-20",
-                "Categories": "Adventure; Time Travel"
+                title: "God's Junk Drawer",
+                subtitle: "",
+                authors: "Peter Clines",
+                narrators: "Ray Porter",
+                length: 1002,
+                description: "<p>God’s Junk Drawer is a mind-bending tale of mystery and adventure set at the dawn of time.</p> <p>Welcome to the Valley …</p> <p>Forty years ago, the Gather family—James, his daughter Beau, and his son Billy—vanished during a whitewater rafting trip and were presumed dead.</p> <p>Five years later, Billy reappeared on the far side of the world, telling an impossible tale of a primordial valley populated by dinosaurs, aliens, Neanderthals, and androids. Little Billy became the punchline of so very many jokes, until he finally faded from the public eye.</p> <p>Now, a group of graduate astronomy students follow their professor, Noah Barnes, up a mountain for what they believe is a simple stargazing trip. But they’re about to travel a lot farther than they planned …</p> <p>Noah—the now grown Billy Gather—has finally figured out how to get back to the Valley. Accidentally bringing his students along with him, he’s confident he can get everyone back home, safe and sound.</p> <p>But the Valley is a puzzle—one it turns out Noah hasn’t figured out—and they’ll need to solve it together if there’s any chance of making it out alive.</p> <p>Pulling from Earth’s past, future, and beyond, Peter Clines has created a complex, dangerous world, navigated by a dynamic ensemble cast, and a story that is thrilling as it is funny and heartfelt.</p>",
+                publisher: "Audible Studios",
+                series: "",
+                seriesOrder: "",
+                ratingOverall: 4.52120733261108,
+                ratingPerformance: 4.81176471710205,
+                ratingStory: 4.48154163360596,
+                datePublished: "2026-01-20",
+                categories: "Adventure; Time Travel"
             },
             {
-                "Title": "Operation Bounce House",
-                "Subtitle": "",
-                "Authors": "Matt Dinniman",
-                "Narrators": "Travis Baldree, Jeff Hays",
-                "Length In Minutes": 648,
-                "Description": "<b>A man must fight for his planet against impossible odds when gamers from Earth attempt to remotely annihilate it in this epic, fast-paced novel from the <i>New York Times </i>bestselling author of the smash-hit <i>Dungeon Crawler Carl</i>.</b><br /><br />All colonist Oliver Lewis ever wanted to do was run the family ranch with his sister, maybe play a gig or two with his band, and keep his family’s aging fleet of intelligent agriculture bots ticking as long as possible. He figures it will be a good thing when the transfer gate finally opens all the way and restores instant travel and full communication between Earth and his planet, New Sonora. But there’s a complication.<br /><br />Even though the settlers were promised they’d be left in peace, Earth’s government now has other plans. The colossal Apex Industries is hired to commence an “eviction action.” But maximizing profits will always be Apex’s number one priority. Why spend money printing and deploying AI soldiers when they can turn it into a game? Why not charge bored Earthers for the opportunity to design their own war machines and remotely pilot them from the comfort of their homes?<br /><br />The game is called Operation Bounce House.<br /><br />Oliver and his friends soon find themselves fighting for their lives against machines piloted by gamers who’ve paid a premium for the privilege. With the help of an old book from his grandfather and a bucket of rusty parts, Oliver is determined to defend the only home he’s ever known.",
-                "Publisher": "Penguin Audio",
-                "Series Names": "",
-                "Series Order": "",
-                "Community Rating: Overall": 4.59983921051025,
-                "Community Rating: Performance": 4.76522636413574,
-                "Community Rating: Story": 4.57281398773193,
-                "Date Published": "2026-02-10",
-                "Categories": "Adventure; Epic; Thriller & Suspense"
+                title: "Operation Bounce House",
+                subtitle: "",
+                authors: "Matt Dinniman",
+                narrators: "Travis Baldree, Jeff Hays",
+                length: 648,
+                description: "<b>A man must fight for his planet against impossible odds when gamers from Earth attempt to remotely annihilate it in this epic, fast-paced novel from the <i>New York Times </i>bestselling author of the smash-hit <i>Dungeon Crawler Carl</i>.</b><br /><br />All colonist Oliver Lewis ever wanted to do was run the family ranch with his sister, maybe play a gig or two with his band, and keep his family’s aging fleet of intelligent agriculture bots ticking as long as possible. He figures it will be a good thing when the transfer gate finally opens all the way and restores instant travel and full communication between Earth and his planet, New Sonora. But there’s a complication.<br /><br />Even though the settlers were promised they’d be left in peace, Earth’s government now has other plans. The colossal Apex Industries is hired to commence an “eviction action.” But maximizing profits will always be Apex’s number one priority. Why spend money printing and deploying AI soldiers when they can turn it into a game? Why not charge bored Earthers for the opportunity to design their own war machines and remotely pilot them from the comfort of their homes?<br /><br />The game is called Operation Bounce House.<br /><br />Oliver and his friends soon find themselves fighting for their lives against machines piloted by gamers who’ve paid a premium for the privilege. With the help of an old book from his grandfather and a bucket of rusty parts, Oliver is determined to defend the only home he’s ever known.",
+                publisher: "Penguin Audio",
+                series: "",
+                seriesOrder: "",
+                ratingOverall: 4.59983921051025,
+                ratingPerformance: 4.76522636413574,
+                ratingStory: 4.57281398773193,
+                datePublished: "2026-02-10",
+                categories: "Adventure; Epic; Thriller & Suspense"
             },
             {
-                "Title": "Project Hail Mary",
-                "Subtitle": "",
-                "Authors": "Andy Weir",
-                "Narrators": "Ray Porter",
-                "Length In Minutes": 970,
-                "Description": "<p><b>THE #1 </b><b><i>NEW YORK TIMES</i></b><b> BESTSELLER FROM THE AUTHOR OF </b><b><i>THE MARTIAN</i></b><b> • Soon to be a major motion picture starring Ryan Gosling, directed by Phil Lord and Christopher Miller, with a screenplay by Drew Goddard</b></p> <p><b><i>Winner of the 2022 Audie Awards' Audiobook of the Year</i></b></p> <p><b><i>Number-One Audible and </i></b><b>New York Times</b><b><i> Audio Best Seller</i></b></p> <p><b><i>More than two million audiobooks sold</i></b></p> <p><b>A lone astronaut must save the earth from disaster in this incredible new science-based thriller from the number-one </b><b><i>New York Times</i></b><b> best-selling author of </b><b><i>The Martian</i></b><b>.</b></p> <p>Ryland Grace is the sole survivor on a desperate, last-chance mission - and if he fails, humanity and the Earth itself will perish.</p> <p>Except that right now, he doesn't know that. He can't even remember his own name, let alone the nature of his assignment or how to complete it.</p> <p>All he knows is that he's been asleep for a very, very long time. And he's just been awakened to find himself millions of miles from home, with nothing but two corpses for company.</p> <p>His crewmates dead, his memories fuzzily returning, he realizes that an impossible task now confronts him. Alone on this tiny ship that's been cobbled together by every government and space agency on the planet and hurled into the depths of space, it's up to him to conquer an extinction-level threat to our species.</p> <p>And thanks to an unexpected ally, he just might have a chance.</p> <p>Part scientific mystery, part dazzling interstellar journey, <i>Project Hail Mary</i> is a tale of discovery, speculation, and survival to rival <i>The Martian</i> - while taking us to places it never dreamed of going.</p> <p>PLEASE NOTE: To accommodate this audio edition, some changes to the original text have been made with the approval of author Andy Weir.</p>",
-                "Publisher": "Audible Studios",
-                "Series Names": "",
-                "Series Order": "",
-                "Community Rating: Overall": 4.87452602386475,
-                "Community Rating: Performance": 4.92743158340454,
-                "Community Rating: Story": 4.84895801544189,
-                "Date Published": "2021-05-04",
-                "Categories": "Hard Science Fiction; Space Opera; Adventure"
+                title: "Project Hail Mary",
+                subtitle: "",
+                authors: "Andy Weir",
+                narrators: "Ray Porter",
+                length: 970,
+                description: "<p><b>THE #1 </b><b><i>NEW YORK TIMES</i></b><b> BESTSELLER FROM THE AUTHOR OF </b><b><i>THE MARTIAN</i></b><b> • Soon to be a major motion picture starring Ryan Gosling, directed by Phil Lord and Christopher Miller, with a screenplay by Drew Goddard</b></p> <p><b><i>Winner of the 2022 Audie Awards' Audiobook of the Year</i></b></p> <p><b><i>Number-One Audible and </i></b><b>New York Times</b><b><i> Audio Best Seller</i></b></p> <p><b><i>More than two million audiobooks sold</i></b></p> <p><b>A lone astronaut must save the earth from disaster in this incredible new science-based thriller from the number-one </b><b><i>New York Times</i></b><b> best-selling author of </b><b><i>The Martian</i></b><b>.</b></p> <p>Ryland Grace is the sole survivor on a desperate, last-chance mission - and if he fails, humanity and the Earth itself will perish.</p> <p>Except that right now, he doesn't know that. He can't even remember his own name, let alone the nature of his assignment or how to complete it.</p> <p>All he knows is that he's been asleep for a very, very long time. And he's just been awakened to find himself millions of miles from home, with nothing but two corpses for company.</p> <p>His crewmates dead, his memories fuzzily returning, he realizes that an impossible task now confronts him. Alone on this tiny ship that's been cobbled together by every government and space agency on the planet and hurled into the depths of space, it's up to him to conquer an extinction-level threat to our species.</p> <p>And thanks to an unexpected ally, he just might have a chance.</p> <p>Part scientific mystery, part dazzling interstellar journey, <i>Project Hail Mary</i> is a tale of discovery, speculation, and survival to rival <i>The Martian</i> - while taking us to places it never dreamed of going.</p> <p>PLEASE NOTE: To accommodate this audio edition, some changes to the original text have been made with the approval of author Andy Weir.</p>",
+                publisher: "Audible Studios",
+                series: "",
+                seriesOrder: "",
+                ratingOverall: 4.87452602386475,
+                ratingPerformance: 4.92743158340454,
+                ratingStory: 4.84895801544189,
+                datePublished: "2021-05-04",
+                categories: "Hard Science Fiction; Space Opera; Adventure"
             },
             {
-                "Title": "The Egg and Other Stories",
-                "Subtitle": "",
-                "Authors": "Andy Weir",
-                "Narrators": "Jonathan Davis, Christy Romano, R.C. Bray",
-                "Length In Minutes": 77,
-                "Description": "<p>Collected for the first time anywhere, the nine tales in <i>The Egg and Other Stories</i> highlight Andy Weir's trademark wit and unexpected twists. For the few who have yet to experience <i>The Martian</i>, it's a perfect appetizer. For passionate Weir fans, it's a delicious dessert.</p> <p>Stories included in this audio-exclusive collection are:</p> <ul> <li>\"\"Access\"\"</li> <li>\"\"Antihypoxiant\"\"</li> <li>\"\"Annie's Day\"\"</li> <li>\"\"The Real Deal\"\"</li> <li>\"\"Bored World\"\"</li> <li>\"\"The Midtown Butcher\"\"</li> <li>\"\"Meeting Sarah\"\"</li> <li>\"\"The Chef\"\"</li> <li>\"\"The Egg\"\"</li> </ul>",
-                "Publisher": "Audible Studios",
-                "Series Names": "",
-                "Series Order": "",
-                "Community Rating: Overall": 4.5418815612793,
-                "Community Rating: Performance": 4.6895055770874,
-                "Community Rating: Story": 4.53701782226562,
-                "Date Published": "2017-06-06",
-                "Categories": "Anthologies; Short Stories"
+                title: "The Egg and Other Stories",
+                subtitle: "",
+                authors: "Andy Weir",
+                narrators: "Jonathan Davis, Christy Romano, R.C. Bray",
+                length: 77,
+                description: "<p>Collected for the first time anywhere, the nine tales in <i>The Egg and Other Stories</i> highlight Andy Weir's trademark wit and unexpected twists. For the few who have yet to experience <i>The Martian</i>, it's a perfect appetizer. For passionate Weir fans, it's a delicious dessert.</p> <p>Stories included in this audio-exclusive collection are:</p> <ul> <li>\"\"Access\"\"</li> <li>\"\"Antihypoxiant\"\"</li> <li>\"\"Annie's Day\"\"</li> <li>\"\"The Real Deal\"\"</li> <li>\"\"Bored World\"\"</li> <li>\"\"The Midtown Butcher\"\"</li> <li>\"\"Meeting Sarah\"\"</li> <li>\"\"The Chef\"\"</li> <li>\"\"The Egg\"\"</li> </ul>",
+                publisher: "Audible Studios",
+                series: "",
+                seriesOrder: "",
+                ratingOverall: 4.5418815612793,
+                ratingPerformance: 4.6895055770874,
+                ratingStory: 4.53701782226562,
+                datePublished: "2017-06-06",
+                categories: "Anthologies; Short Stories"
             },
             {
-                "Title": "The Singularity Trap",
-                "Subtitle": "",
-                "Authors": "Dennis E. Taylor",
-                "Narrators": "Ray Porter",
-                "Length In Minutes": 683,
-                "Description": "<p>Dennis E. Taylor, author of the best-selling <i>Bobiverse</i> trilogy, explores a whole different, darker world in this sci-fi stand-alone. Determined to give his wife and children a better life back home, Ivan Pritchard ventures to the edge of known space to join the crew of the <i>Mad Astra</i> as an asteroid miner. He's prepared for hard work and loneliness—but not the unthinkable. After coming into contact with a mysterious alien substance, Pritchard finds an unwelcome entity sharing his mind, and a disturbing physical transformation taking place. With his very humanity at stake, Pritchard must save mankind from a full-scale interstellar war.</p> <p>Brought to life by prolific, award-winning narrator Ray Porter, <i>The Singularity Trap</i> is a thrilling adventure rife with drama and action on a truly cosmic scale. </p>",
-                "Publisher": "Audible Originals",
-                "Series Names": "",
-                "Series Order": "",
-                "Community Rating: Overall": 4.52974939346313,
-                "Community Rating: Performance": 4.81066608428955,
-                "Community Rating: Story": 4.44129085540771,
-                "Date Published": "2018-06-05",
-                "Categories": "Fantasy; Science Fiction"
+                title: "The Singularity Trap",
+                subtitle: "",
+                authors: "Dennis E. Taylor",
+                narrators: "Ray Porter",
+                length: 683,
+                description: "<p>Dennis E. Taylor, author of the best-selling <i>Bobiverse</i> trilogy, explores a whole different, darker world in this sci-fi stand-alone. Determined to give his wife and children a better life back home, Ivan Pritchard ventures to the edge of known space to join the crew of the <i>Mad Astra</i> as an asteroid miner. He's prepared for hard work and loneliness—but not the unthinkable. After coming into contact with a mysterious alien substance, Pritchard finds an unwelcome entity sharing his mind, and a disturbing physical transformation taking place. With his very humanity at stake, Pritchard must save mankind from a full-scale interstellar war.</p> <p>Brought to life by prolific, award-winning narrator Ray Porter, <i>The Singularity Trap</i> is a thrilling adventure rife with drama and action on a truly cosmic scale. </p>",
+                publisher: "Audible Originals",
+                series: "",
+                seriesOrder: "",
+                ratingOverall: 4.52974939346313,
+                ratingPerformance: 4.81066608428955,
+                ratingStory: 4.44129085540771,
+                datePublished: "2018-06-05",
+                categories: "Fantasy; Science Fiction"
             },
             {
-                "Title": "Watchers",
-                "Subtitle": "",
-                "Authors": "Dean Koontz",
-                "Narrators": "Edoardo Ballerini, Dean Koontz",
-                "Length In Minutes": 991,
-                "Description": "<p><b>Winner of the 2019 Audie Award for Best Male Narrator with an afterword read by the author</b></p> <p><b>A “superior thriller” (</b><b><i>Oakland Press</i></b><b>) about a man, a dog, and a terrifying threat that could only have come from the imagination of #1 </b><b><i>New York Times</i></b><b> bestselling author Dean Koontz - nominated as one of America’s best-loved novels by PBS’s </b><b><i>The Great American Read</i></b><b>.</b></p> <p>On his thirty-sixth birthday, Travis Cornell hikes into the foothills of the Santa Ana Mountains. But his path is soon blocked by a bedraggled Golden Retriever who will let him go no further into the dark woods.</p> <p>That morning, Travis had been desperate to find some happiness in his lonely, seemingly cursed life. What he finds is a dog of alarming intelligence that soon leads him into a relentless storm of mankind’s darkest creation....</p>",
-                "Publisher": "Brilliance Audio",
-                "Series Names": "",
-                "Series Order": "",
-                "Community Rating: Overall": 4.69461727142334,
-                "Community Rating: Performance": 4.78826522827148,
-                "Community Rating: Story": 4.69105291366577,
-                "Date Published": "2018-05-15",
-                "Categories": "Suspense; Animals; Horror; Genetic Engineering"
+                title: "Watchers",
+                subtitle: "",
+                authors: "Dean Koontz",
+                narrators: "Edoardo Ballerini, Dean Koontz",
+                length: 991,
+                description: "<p><b>Winner of the 2019 Audie Award for Best Male Narrator with an afterword read by the author</b></p> <p><b>A “superior thriller” (</b><b><i>Oakland Press</i></b><b>) about a man, a dog, and a terrifying threat that could only have come from the imagination of #1 </b><b><i>New York Times</i></b><b> bestselling author Dean Koontz - nominated as one of America’s best-loved novels by PBS’s </b><b><i>The Great American Read</i></b><b>.</b></p> <p>On his thirty-sixth birthday, Travis Cornell hikes into the foothills of the Santa Ana Mountains. But his path is soon blocked by a bedraggled Golden Retriever who will let him go no further into the dark woods.</p> <p>That morning, Travis had been desperate to find some happiness in his lonely, seemingly cursed life. What he finds is a dog of alarming intelligence that soon leads him into a relentless storm of mankind’s darkest creation....</p>",
+                publisher: "Brilliance Audio",
+                series: "",
+                seriesOrder: "",
+                ratingOverall: 4.69461727142334,
+                ratingPerformance: 4.78826522827148,
+                ratingStory: 4.69105291366577,
+                datePublished: "2018-05-15",
+                categories: "Suspense; Animals; Horror; Genetic Engineering"
             },
             {
-                "Title": "A Change of Plans",
-                "Subtitle": "A Short Story",
-                "Authors": "Dennis E. Taylor",
-                "Narrators": "Neil Hellegers",
-                "Length In Minutes": 44,
-                "Description": "<p>Earth is dying, and humanity is scrambling to set up colonies in other star systems. But the search process for habitable planets is not perfect, as the crew of the <i>Ouroboros </i>discover on arrival at their new home.</p>",
-                "Publisher": "Audible Studios",
-                "Series Names": "",
-                "Series Order": "",
-                "Community Rating: Overall": 4.47028970718384,
-                "Community Rating: Performance": 4.62625885009766,
-                "Community Rating: Story": 4.46576881408691,
-                "Date Published": "2020-05-26",
-                "Categories": "Space Opera; Adventure"
+                title: "A Change of Plans",
+                subtitle: "A Short Story",
+                authors: "Dennis E. Taylor",
+                narrators: "Neil Hellegers",
+                length: 44,
+                description: "<p>Earth is dying, and humanity is scrambling to set up colonies in other star systems. But the search process for habitable planets is not perfect, as the crew of the <i>Ouroboros </i>discover on arrival at their new home.</p>",
+                publisher: "Audible Studios",
+                series: "",
+                seriesOrder: "",
+                ratingOverall: 4.47028970718384,
+                ratingPerformance: 4.62625885009766,
+                ratingStory: 4.46576881408691,
+                datePublished: "2020-05-26",
+                categories: "Space Opera; Adventure"
             },
             {
-                "Title": "The America Falls Omnibus, Books 1-11",
-                "Subtitle": "",
-                "Authors": "Scott Medbury",
-                "Narrators": "Adam Barr",
-                "Length In Minutes": 3575,
-                "Description": "<p><b>Introducing the special 10th anniversary omnibus edition of the entire </b><b><i>America Falls</i></b><b> series to date, Books 1-11!</b></p> <p>In the middle of the holidays, a biological attack wreaks havoc on the U.S.</p> <p>The virus is quick. Deadly. Unstoppable. The country is left in tatters.</p> <p>For Isaac Race, it’s especially bitter. After the death of his parents and sister, he was just getting his life back on track - the weaponized virus changes all that.</p> <p>Battered by the fresh deaths of his foster parents, but hardened by the year he’s endured, he emerges from the temporary safety of his home to seek out other survivors during the worst winter in years.</p> <p>From the icy mountains of New Hampshire to the ravaged cities depopulated by the virus, follow Isaac and a cast of compelling characters as they embark on an epic journey, taking on not only the invaders, but other perils unleashed in the shattered landscape of post-America. Each book in the series builds on the last, revealing new dangers, unexpected allies and ruthless enemies in their fight for survival.</p> <p><b>If you’re a fan of post-apocalyptic epics, be sure not to miss the </b><b><i>America Falls Omnibus.</i></b></p>",
-                "Publisher": "Anscot Publishing P/L",
-                "Series Names": "America Falls",
-                "Series Order": "1-11",
-                "Community Rating: Overall": 4.52839136123657,
-                "Community Rating: Performance": 4.66392755508423,
-                "Community Rating: Story": 4.49465894699097,
-                "Date Published": "2024-08-23",
-                "Categories": "Post-Apocalyptic; Genre Fiction; Dystopian"
+                title: "The America Falls Omnibus",
+                subtitle: "Books 1-11",
+                authors: "Scott Medbury",
+                narrators: "Adam Barr",
+                length: 3575,
+                description: "<p><b>Introducing the special 10th anniversary omnibus edition of the entire </b><b><i>America Falls</i></b><b> series to date, Books 1-11!</b></p> <p>In the middle of the holidays, a biological attack wreaks havoc on the U.S.</p> <p>The virus is quick. Deadly. Unstoppable. The country is left in tatters.</p> <p>For Isaac Race, it’s especially bitter. After the death of his parents and sister, he was just getting his life back on track - the weaponized virus changes all that.</p> <p>Battered by the fresh deaths of his foster parents, but hardened by the year he’s endured, he emerges from the temporary safety of his home to seek out other survivors during the worst winter in years.</p> <p>From the icy mountains of New Hampshire to the ravaged cities depopulated by the virus, follow Isaac and a cast of compelling characters as they embark on an epic journey, taking on not only the invaders, but other perils unleashed in the shattered landscape of post-America. Each book in the series builds on the last, revealing new dangers, unexpected allies and ruthless enemies in their fight for survival.</p> <p><b>If you’re a fan of post-apocalyptic epics, be sure not to miss the </b><b><i>America Falls Omnibus.</i></b></p>",
+                publisher: "Anscot Publishing P/L",
+                series: "America Falls",
+                seriesOrder: "1-11 : America Falls",
+                ratingOverall: 4.52839136123657,
+                ratingPerformance: 4.66392755508423,
+                ratingStory: 4.49465894699097,
+                datePublished: "2024-08-23",
+                categories: "Post-Apocalyptic; Genre Fiction; Dystopian"
             },
             {
-                "Title": "America Falls, Collection 3",
-                "Subtitle": "Books 11-13",
-                "Authors": "Scott Medbury",
-                "Narrators": "Adam Barr",
-                "Length In Minutes": 1030,
-                "Description": "<p>The epic America Falls saga continues in this explosive Mega Collection read by the incomparable Adam Barr, featuring:</p> <p>Book 11: STORM CLOUDS</p> ... (Description compressed for size limit)",
-                "Publisher": "Anscot Publishing P/L",
-                "Series Names": "America Falls",
-                "Series Order": "11-13",
-                "Community Rating: Overall": 4.84375,
-                "Community Rating: Performance": 4.88050317764282,
-                "Community Rating: Story": 4.80503129959106,
-                "Date Published": "2025-10-06",
-                "Categories": "Adventure; Post-Apocalyptic; Anthologies & Short Stories"
+                title: "America Falls, Collection 3",
+                subtitle: "Books 11-13",
+                authors: "Scott Medbury",
+                narrators: "Adam Barr",
+                length: 1030,
+                description: "<p>The epic America Falls saga continues in this explosive Mega Collection read by the incomparable Adam Barr, featuring: ...</p>",
+                publisher: "Anscot Publishing P/L",
+                series: "America Falls",
+                seriesOrder: "11-13 : America Falls",
+                ratingOverall: 4.84375,
+                ratingPerformance: 4.88050317764282,
+                ratingStory: 4.80503129959106,
+                datePublished: "2025-10-06",
+                categories: "Adventure; Post-Apocalyptic; Anthologies & Short Stories"
             },
             {
-                "Title": "Feedback",
-                "Subtitle": "",
-                "Authors": "Dennis E. Taylor",
-                "Narrators": "Ray Porter",
-                "Length In Minutes": 32,
-                "Description": "<p>If the past is prologue - what if the prologue never happened? When a team of scientists attempts to rewrite history, the story of the present turns out to have an ending they didn’t see coming.</p> <p>Over and over.</p> <p><i>Feedback</i> is an all-new short story by Dennis E. Taylor, Audible number one best-selling author of the Bobiverse series, <i>The Singularity Trap</i> and <i>Outland</i>.</p>",
-                "Publisher": "Audible Originals",
-                "Series Names": "Audible Original Stories",
-                "Series Order": "Audible Originals",
-                "Community Rating: Overall": 4.52785968780518,
-                "Community Rating: Performance": 4.76663398742676,
-                "Community Rating: Story": 4.50951147079468,
-                "Date Published": "2020-11-19",
-                "Categories": "Time Travel"
+                title: "Feedback",
+                subtitle: "",
+                authors: "Dennis E. Taylor",
+                narrators: "Ray Porter",
+                length: 32,
+                description: "<p>If the past is prologue - what if the prologue never happened? When a team of scientists attempts to rewrite history, the story of the present turns out to have an ending they didn’t see coming.</p>",
+                publisher: "Audible Originals",
+                series: "Audible Original Stories",
+                seriesOrder: " : Audible Original Stories",
+                ratingOverall: 4.52785968780518,
+                ratingPerformance: 4.76663398742676,
+                ratingStory: 4.50951147079468,
+                datePublished: "2020-11-19",
+                categories: "Time Travel"
             },
             {
-                "Title": "We Are Legion (We Are Bob)",
-                "Subtitle": "Bobiverse, Book 1",
-                "Authors": "Dennis E. Taylor",
-                "Narrators": "Ray Porter",
-                "Length In Minutes": 596,
-                "Description": "<p>There's a reason <i>We Are Legion (We Are Bob)</i> was named Audible's Best Science Fiction Book of 2016: Its irresistibly irreverent wit! Bob Johansson has just sold his software company for a small fortune and is looking forward to a life of leisure. The first item on his to-do list: Spending his newfound windfall. On an urge to splurge, he signs up to have his head cryogenically preserved in case of death. Then he gets himself killed crossing the street. Waking up 117 years later, Bob discovers his mind has been uploaded into a sentient space probe with the ability to replicate itself.</p>",
-                "Publisher": "Audible Originals",
-                "Series Names": "Bobiverse",
-                "Series Order": "1",
-                "Community Rating: Overall": 4.67273044586182,
-                "Community Rating: Performance": 4.82117414474487,
-                "Community Rating: Story": 4.63473796844482,
-                "Date Published": "2016-09-20",
-                "Categories": "First Contact; Hard Science Fiction; Fantasy"
+                title: "We Are Legion (We Are Bob)",
+                subtitle: "Bobiverse, Book 1",
+                authors: "Dennis E. Taylor",
+                narrators: "Ray Porter",
+                length: 596,
+                description: "<p>There's a reason <i>We Are Legion (We Are Bob)</i> was named Audible's Best Science Fiction Book of 2016...",
+                publisher: "Audible Originals",
+                series: "Bobiverse",
+                seriesOrder: "1 : Bobiverse",
+                ratingOverall: 4.67273044586182,
+                ratingPerformance: 4.82117414474487,
+                ratingStory: 4.63473796844482,
+                datePublished: "2016-09-20",
+                categories: "First Contact; Hard Science Fiction; Fantasy"
             },
             {
-                "Title": "For We Are Many",
-                "Subtitle": "Bobiverse, Book 2",
-                "Authors": "Dennis E. Taylor",
-                "Narrators": "Ray Porter",
-                "Length In Minutes": 539,
-                "Description": "<p>The highly anticipated sequel to Audible's Best of 2016 - Science Fiction winner, <i>We Are Legion (We Are Bob)</i>; Bob and his copies have been spreading out from Earth for 40 years now, looking for habitable planets. But that's the only part of the plan that's still in one piece.</p>",
-                "Publisher": "Audible Originals",
-                "Series Names": "Bobiverse",
-                "Series Order": "2",
-                "Community Rating: Overall": 4.77009916305542,
-                "Community Rating: Performance": 4.86347484588623,
-                "Community Rating: Story": 4.73400259017944,
-                "Date Published": "2017-04-18",
-                "Categories": "Hard Science Fiction; Space Opera"
+                title: "For We Are Many",
+                subtitle: "Bobiverse, Book 2",
+                authors: "Dennis E. Taylor",
+                narrators: "Ray Porter",
+                length: 539,
+                description: "<p>The highly anticipated sequel to Audible's Best of 2016...",
+                publisher: "Audible Originals",
+                series: "Bobiverse",
+                seriesOrder: "2 : Bobiverse",
+                ratingOverall: 4.77009916305542,
+                ratingPerformance: 4.86347484588623,
+                ratingStory: 4.73400259017944,
+                datePublished: "2017-04-18",
+                categories: "Hard Science Fiction; Space Opera"
             },
             {
-                "Title": "All These Worlds",
-                "Subtitle": "Bobiverse, Book 3",
-                "Authors": "Dennis E. Taylor",
-                "Narrators": "Ray Porter",
-                "Length In Minutes": 476,
-                "Description": "<p>The epic and highly anticipated conclusion to the listener-favorite series that had countless Audible listeners (and employees) hooked from the very first Bob - featuring, as always, a flawless performance from the inimitable Ray Porter.</p>",
-                "Publisher": "Audible Originals",
-                "Series Names": "Bobiverse",
-                "Series Order": "3",
-                "Community Rating: Overall": 4.7808780670166,
-                "Community Rating: Performance": 4.88955307006836,
-                "Community Rating: Story": 4.73550510406494,
-                "Date Published": "2017-08-08",
-                "Categories": "First Contact"
+                title: "All These Worlds",
+                subtitle: "Bobiverse, Book 3",
+                authors: "Dennis E. Taylor",
+                narrators: "Ray Porter",
+                length: 476,
+                description: "<p>The epic and highly anticipated conclusion to the listener-favorite series...",
+                publisher: "Audible Originals",
+                series: "Bobiverse",
+                seriesOrder: "3 : Bobiverse",
+                ratingOverall: 4.7808780670166,
+                ratingPerformance: 4.88955307006836,
+                ratingStory: 4.73550510406494,
+                datePublished: "2017-08-08",
+                categories: "First Contact"
             },
             {
-                "Title": "Dungeon Crawler Carl",
-                "Subtitle": "Dungeon Crawler Carl, Book 1",
-                "Authors": "Matt Dinniman",
-                "Narrators": "Jeff Hays",
-                "Length In Minutes": 811,
-                "Description": "<p><b>The apocalypse will be televised!</b> A man. His ex-girlfriend's cat. A sadistic game show unlike anything in the universe: a dungeon crawl where survival depends on killing your prey in the most entertaining way possible. In a flash, every human-erected construction on Earth - collapses in a heap, sinking into the ground.</p>",
-                "Publisher": "Audible Studios",
-                "Series Names": "Dungeon Crawler Carl",
-                "Series Order": "1",
-                "Community Rating: Overall": 4.84704208374023,
-                "Community Rating: Performance": 4.92693090438843,
-                "Community Rating: Story": 4.80930137634277,
-                "Date Published": "2021-01-28",
-                "Categories": "Contemporary; LitRPG; Adventure; Suspense"
+                title: "Dungeon Crawler Carl",
+                subtitle: "Dungeon Crawler Carl, Book 1",
+                authors: "Matt Dinniman",
+                narrators: "Jeff Hays",
+                length: 811,
+                description: "<p>A man. His ex-girlfriend's cat. A sadistic game show unlike anything in the universe...</p>",
+                publisher: "Audible Studios",
+                series: "Dungeon Crawler Carl",
+                seriesOrder: "1 : Dungeon Crawler Carl",
+                ratingOverall: 4.84704208374023,
+                ratingPerformance: 4.92693090438843,
+                ratingStory: 4.80930137634277,
+                datePublished: "2021-01-28",
+                categories: "Contemporary; Movie, TV & Video Game Tie-Ins; Suspense"
             },
             {
-                "Title": "Carl's Doomsday Scenario",
-                "Subtitle": "Dungeon Crawler Carl, Book 2",
-                "Authors": "Matt Dinniman",
-                "Narrators": "Jeff Hays",
-                "Length In Minutes": 688,
-                "Description": "<p><b>The training levels have concluded. Now the games may truly begin.</b> The ratings and views are off the chart. Carl and Princess Donut need to work harder than ever just to survive.</p>",
-                "Publisher": "Audible Studios",
-                "Series Names": "Dungeon Crawler Carl",
-                "Series Order": "2",
-                "Community Rating: Overall": 4.88890075683594,
-                "Community Rating: Performance": 4.95823287963867,
-                "Community Rating: Story": 4.8558087348938,
-                "Date Published": "2021-04-22",
-                "Categories": "Contemporary; LitRPG; Literature & Fiction"
+                title: "Carl's Doomsday Scenario",
+                subtitle: "Dungeon Crawler Carl, Book 2",
+                authors: "Matt Dinniman",
+                narrators: "Jeff Hays",
+                length: 688,
+                description: "<p>The training levels have concluded. Now the games may truly begin.</p>",
+                publisher: "Audible Studios",
+                series: "Dungeon Crawler Carl",
+                seriesOrder: "2 : Dungeon Crawler Carl",
+                ratingOverall: 4.88890075683594,
+                ratingPerformance: 4.95823287963867,
+                ratingStory: 4.8558087348938,
+                datePublished: "2021-04-22",
+                categories: "Contemporary; Literature & Fiction"
             },
             {
-                "Title": "The Dungeon Anarchist's Cookbook",
-                "Subtitle": "Dungeon Crawler Carl, Book 3",
-                "Authors": "Matt Dinniman",
-                "Narrators": "Jeff Hays, The Critical Drinker",
-                "Length In Minutes": 1014,
-                "Description": "<p>Welcome to the Gun Show! The top 10 list is populated. The sponsorship program is open. The difficulty is ramping up. The first three floors were nothing compared to what Carl and Donut now face. The Iron Tangle.</p>",
-                "Publisher": "Audible Studios",
-                "Series Names": "Dungeon Crawler Carl",
-                "Series Order": "3",
-                "Community Rating: Overall": 4.89057445526123,
-                "Community Rating: Performance": 4.96294260025024,
-                "Community Rating: Story": 4.8527045249939,
-                "Date Published": "2021-05-14",
-                "Categories": "LitRPG; Literature & Fiction; Paranormal"
+                title: "The Dungeon Anarchist's Cookbook",
+                subtitle: "Dungeon Crawler Carl, Book 3",
+                authors: "Matt Dinniman",
+                narrators: "Jeff Hays, The Critical Drinker",
+                length: 1014,
+                description: "<p>Welcome to the Gun Show! The top 10 list is populated...</p>",
+                publisher: "Audible Studios",
+                series: "Dungeon Crawler Carl",
+                seriesOrder: "3 : Dungeon Crawler Carl",
+                ratingOverall: 4.89057445526123,
+                ratingPerformance: 4.96294260025024,
+                ratingStory: 4.8527045249939,
+                datePublished: "2021-05-14",
+                categories: "Literature & Fiction; Paranormal"
             },
             {
-                "Title": "The Gate of the Feral Gods",
-                "Subtitle": "Dungeon Crawler Carl, Book 4",
-                "Authors": "Matt Dinniman",
-                "Narrators": "Jeff Hays",
-                "Length In Minutes": 1083,
-                "Description": "<p><b>New achievement! Total, utter failure.</b> Carl and his team can't go it alone. Not this time. They must rely on the help of the low-level, I-can't-believe-these-idiots-are-still-alive crawlers trapped in the bubble with them.</p>",
-                "Publisher": "Audible Studios",
-                "Series Names": "Dungeon Crawler Carl",
-                "Series Order": "4",
-                "Community Rating: Overall": 4.9065375328064,
-                "Community Rating: Performance": 4.96861553192139,
-                "Community Rating: Story": 4.88158321380615,
-                "Date Published": "2021-09-16",
-                "Categories": "Fantasy; Supernatural; LitRPG"
+                title: "The Gate of the Feral Gods",
+                subtitle: "Dungeon Crawler Carl, Book 4",
+                authors: "Matt Dinniman",
+                narrators: "Jeff Hays",
+                length: 1083,
+                description: "<p>New achievement! Total, utter failure. You failed a quest less than five minutes after you received it...</p>",
+                publisher: "Audible Studios",
+                series: "Dungeon Crawler Carl",
+                seriesOrder: "4 : Dungeon Crawler Carl",
+                ratingOverall: 4.9065375328064,
+                ratingPerformance: 4.96861553192139,
+                ratingStory: 4.88158321380615,
+                datePublished: "2021-09-16",
+                categories: "Fantasy; Supernatural"
             },
             {
-                "Title": "The Butcher's Masquerade",
-                "Subtitle": "Dungeon Crawler Carl, Book 5",
-                "Authors": "Matt Dinniman",
-                "Narrators": "Jeff Hays",
-                "Length In Minutes": 1413,
-                "Description": "<p><b>Attention. Attention. The gates are down. The hunters are loose.</b> Run, run, run. A lush jungle teeming with danger. Savage dinosaurs seeking blood. A fallen princess intent on vengeance.</p>",
-                "Publisher": "Audible Studios",
-                "Series Names": "Dungeon Crawler Carl",
-                "Series Order": "5",
-                "Community Rating: Overall": 4.93915367126465,
-                "Community Rating: Performance": 4.97799634933472,
-                "Community Rating: Story": 4.91572952270508,
-                "Date Published": "2022-05-26",
-                "Categories": "Humorous; LitRPG; Adventure"
+                title: "The Butcher's Masquerade",
+                subtitle: "Dungeon Crawler Carl, Book 5",
+                authors: "Matt Dinniman",
+                narrators: "Jeff Hays",
+                length: 1413,
+                description: "<p>Attention. Attention. The gates are down. The hunters are loose. Run, run, run...</p>",
+                publisher: "Audible Studios",
+                series: "Dungeon Crawler Carl",
+                seriesOrder: "5 : Dungeon Crawler Carl",
+                ratingOverall: 4.93915367126465,
+                ratingPerformance: 4.97799634933472,
+                ratingStory: 4.91572952270508,
+                datePublished: "2022-05-26",
+                categories: "Humorous"
             },
             {
-                "Title": "The Eye of the Bedlam Bride",
-                "Subtitle": "Dungeon Crawler Carl, Book 6",
-                "Authors": "Matt Dinniman",
-                "Narrators": "Jeff Hays, Patrick Warburton, Travis Baldree, Annie Ellicott",
-                "Length In Minutes": 1606,
-                "Description": "<p>A pantheon of forgotten gods. An old grudge between a talk show host, an heiress, and the man they shattered along the way. A rapidly deteriorating AI system. An inconvenient tiara.</p>",
-                "Publisher": "Audible Studios",
-                "Series Names": "Dungeon Crawler Carl",
-                "Series Order": "6",
-                "Community Rating: Overall": 4.9128589630127,
-                "Community Rating: Performance": 4.96954774856567,
-                "Community Rating: Story": 4.88859558105469,
-                "Date Published": "2023-09-01",
-                "Categories": "Epic; Humorous; LitRPG"
+                title: "The Eye of the Bedlam Bride",
+                subtitle: "Dungeon Crawler Carl, Book 6",
+                authors: "Matt Dinniman",
+                narrators: "Jeff Hays, Patrick Warburton, Travis Baldree, Annie Ellicott",
+                length: 1606,
+                description: "<p>A pantheon of forgotten gods. An old grudge between a talk show host, an heiress...</p>",
+                publisher: "Audible Studios",
+                series: "Dungeon Crawler Carl",
+                seriesOrder: "6 : Dungeon Crawler Carl",
+                ratingOverall: 4.9128589630127,
+                ratingPerformance: 4.96954774856567,
+                ratingStory: 4.88859558105469,
+                datePublished: "2023-09-01",
+                categories: "Epic; Humorous"
             },
             {
-                "Title": "This Inevitable Ruin",
-                "Subtitle": "Dungeon Crawler Carl, Book 7",
-                "Authors": "Matt Dinniman",
-                "Narrators": "Jeff Hays, Travis Baldree",
-                "Length In Minutes": 1720,
-                "Description": "<p><b>The time has come! Book seven in the best-selling Dungeon Crawler Carl series is here!</b> They call it Faction Wars. The ninth floor. Nine armies, each led by rich and powerful aliens from across the galaxy.</p>",
-                "Publisher": "Audible Studios",
-                "Series Names": "Dungeon Crawler Carl",
-                "Series Order": "7",
-                "Community Rating: Overall": 4.92796325683594,
-                "Community Rating: Performance": 4.97433137893677,
-                "Community Rating: Story": 4.89932203292847,
-                "Date Published": "2025-02-11",
-                "Categories": "Contemporary; Action & Adventure; Humorous; LitRPG"
+                title: "This Inevitable Ruin",
+                subtitle: "Dungeon Crawler Carl, Book 7",
+                authors: "Matt Dinniman",
+                narrators: "Jeff Hays, Travis Baldree",
+                length: 1720,
+                description: "<p>The time has come! Book seven in the best-selling Dungeon Crawler Carl series is here!</p>",
+                publisher: "Audible Studios",
+                series: "Dungeon Crawler Carl",
+                seriesOrder: "7 : Dungeon Crawler Carl",
+                ratingOverall: 4.92796325683594,
+                ratingPerformance: 4.97433137893677,
+                ratingStory: 4.89932203292847,
+                datePublished: "2025-02-11",
+                categories: "Contemporary; Action & Adventure; Humorous"
             },
             {
-                "Title": "A Parade of Horribles",
-                "Subtitle": "Dungeon Crawler Carl, Book 8",
-                "Authors": "Matt Dinniman",
-                "Narrators": "Jeff Hays",
-                "Length In Minutes": 1227,
-                "Description": "<p><b>It’s off to the races in the explosive eighth book in the Dungeon Crawler Carl series.</b> As chaos and mass panic spread outside the dungeon, Carl and Donut find themselves on the tenth floor, where they’re forced to compete in a surprisingly normal set of tasks.</p>",
-                "Publisher": "Audible Studios",
-                "Series Names": "Dungeon Crawler Carl",
-                "Series Order": "8",
-                "Community Rating: Overall": 4.92730474472046,
-                "Community Rating: Performance": 4.98024129867554,
-                "Community Rating: Story": 4.89170455932617,
-                "Date Published": "2026-05-12",
-                "Categories": "Contemporary; Adventure; Action & Adventure; LitRPG"
+                title: "A Parade of Horribles",
+                subtitle: "Dungeon Crawler Carl, Book 8",
+                authors: "Matt Dinniman",
+                narrators: "Jeff Hays",
+                length: 1227,
+                description: "<p>It’s off to the races in the explosive eighth book in the Dungeon Crawler Carl series...</p>",
+                publisher: "Audible Studios",
+                series: "Dungeon Crawler Carl",
+                seriesOrder: "8 : Dungeon Crawler Carl",
+                ratingOverall: 4.92730474472046,
+                ratingPerformance: 4.98024129867554,
+                ratingStory: 4.89170455932617,
+                datePublished: "2026-05-12",
+                categories: "Contemporary; Adventure; Action & Adventure"
             },
             {
-                "Title": "One Bad Roll: A LitRPG Adventure",
-                "Subtitle": "Fifth Era Apocalypse, Book 1",
-                "Authors": "Ryan Rimmel",
-                "Narrators": "Johnathan McClain",
-                "Length In Minutes": 767,
-                "Description": "<p><b>One bad roll catapults them into a new world...</b> Five friends, gamers for life, gather for their usual game night. Yet, when they use a strange new die they are transported to a fantasy world where all gaming ideas can come true.</p>",
-                "Publisher": "Podium Audio",
-                "Series Names": "Fifth Era Apocalypse",
-                "Series Order": "1",
-                "Community Rating: Overall": 4.22622108459473,
-                "Community Rating: Performance": 4.66559505462646,
-                "Community Rating: Story": 4.31832790374756,
-                "Date Published": "2023-03-21",
-                "Categories": "Action & Adventure; Epic; Humorous; LitRPG"
-            },
-            // Generative Mapping of all "He Who Fights with Monsters" books
-            ...Array.from({length: 12}, (_, i) => {
-                const bookNum = i + 1;
-                const ratings = [
-                    {o: 4.74, p: 4.80, s: 4.72, d: "2021-03-09"},
-                    {o: 4.86, p: 4.90, s: 4.85, d: "2021-05-18"},
-                    {o: 4.84, p: 4.91, s: 4.82, d: "2021-09-07"},
-                    {o: 4.83, p: 4.91, s: 4.78, d: "2021-12-28"},
-                    {o: 4.82, p: 4.91, s: 4.78, d: "2022-04-05"},
-                    {o: 4.87, p: 4.94, s: 4.84, d: "2022-06-28"},
-                    {o: 4.89, p: 4.95, s: 4.87, d: "2022-09-13"},
-                    {o: 4.83, p: 4.94, s: 4.79, d: "2022-12-13"},
-                    {o: 4.83, p: 4.91, s: 4.80, d: "2023-04-18"},
-                    {o: 4.78, p: 4.91, s: 4.73, d: "2023-11-28"},
-                    {o: 4.86, p: 4.94, s: 4.83, d: "2024-07-23"},
-                    {o: 4.80, p: 4.92, s: 4.76, d: "2025-05-20"}
-                ][i];
-                return {
-                    "Title": `He Who Fights with Monsters ${bookNum > 1 ? bookNum : ""}`.trim() + (bookNum === 1 || bookNum === 11 || bookNum === 12 ? ": A LitRPG Adventure" : ""),
-                    "Subtitle": `He Who Fights with Monsters, Book ${bookNum}`,
-                    "Authors": "Shirtaloon, Travis Deverell",
-                    "Narrators": "Heath Miller",
-                    "Length In Minutes": [1736, 1321, 1479, 1340, 1205, 949, 1119, 1092, 1683, 1518, 1579, 1166][i],
-                    "Description": `<p>Jason wakes up in a mysterious world of magic and monsters. Meet Jason Asano as he progress from retail middle management to inter-dimensional wizard adventurer. Cultivation, progress, unique progression and cosmic fights await!</p>`,
-                    "Publisher": "Podium Audio",
-                    "Series Names": "He Who Fights with Monsters",
-                    "Series Order": `${bookNum}`,
-                    "Community Rating: Overall": ratings.o,
-                    "Community Rating: Performance": ratings.p,
-                    "Community Rating: Story": ratings.s,
-                    "Date Published": ratings.d,
-                    "Categories": "Action & Adventure; Epic; LitRPG; Fantasy"
-                };
-            }),
-            {
-                "Title": "Lost Light: The Complete Survival Thriller Series Box Set",
-                "Subtitle": "",
-                "Authors": "Kyla Stone",
-                "Narrators": "Stacey Glemboski",
-                "Length In Minutes": 3351,
-                "Description": "<p>When a catastrophic solar flare erupts strikes Earth, half the planet goes dark—permanently. Transformers explode. The power grid fails. Communication networks collapse.</p>",
-                "Publisher": "Paper Moon Press",
-                "Series Names": "Lost Light",
-                "Series Order": "1-4",
-                "Community Rating: Overall": 4.58505582809448,
-                "Community Rating: Performance": 4.67953014373779,
-                "Community Rating: Story": 4.5755033493042,
-                "Date Published": "2024-12-26",
-                "Categories": "Fantasy; Post-Apocalyptic; Action & Adventure; Technothrillers"
+                title: "One Bad Roll: A LitRPG Adventure",
+                subtitle: "Fifth Era Apocalypse, Book 1",
+                authors: "Ryan Rimmel",
+                narrators: "Johnathan McClain",
+                length: 767,
+                description: "<p>One bad roll catapults them into a new world... Five friends, gamers for life...</p>",
+                publisher: "Podium Audio",
+                series: "Fifth Era Apocalypse",
+                seriesOrder: "1 : Fifth Era Apocalypse",
+                ratingOverall: 4.22622108459473,
+                ratingPerformance: 4.66559505462646,
+                ratingStory: 4.31832790374756,
+                datePublished: "2023-03-21",
+                categories: "Action & Adventure; Epic; Humorous"
             },
             {
-                "Title": "The Mayor of Noobtown",
-                "Subtitle": "Noobtown, Book 1",
-                "Authors": "Ryan Rimmel",
-                "Narrators": "Johnathan McClain",
-                "Length In Minutes": 543,
-                "Description": "<p>After dying and being reborn into a world that's built like a video game, Jim has found himself stuck in a very old-world style new-player zone for low-level adventurers.</p>",
-                "Publisher": "Podium Audio",
-                "Series Names": "Noobtown",
-                "Series Order": "1",
-                "Community Rating: Overall": 4.59044551849365,
-                "Community Rating: Performance": 4.71240377426147,
-                "Community Rating: Story": 4.56865787506104,
-                "Date Published": "2019-08-13",
-                "Categories": "Action & Adventure; Epic; Urban; LitRPG"
+                title: "He Who Fights with Monsters: A LitRPG Adventure",
+                subtitle: "He Who Fights with Monsters, Book 1",
+                authors: "Shirtaloon, Travis Deverell",
+                narrators: "Heath Miller",
+                length: 1736,
+                description: "<p>Jason wakes up in a mysterious world of magic and monsters...</p>",
+                publisher: "Podium Audio",
+                series: "He Who Fights with Monsters",
+                seriesOrder: "1 : He Who Fights with Monsters",
+                ratingOverall: 4.74974393844604,
+                ratingPerformance: 4.80639171600342,
+                ratingStory: 4.72516345977783,
+                datePublished: "2021-03-09",
+                categories: "Action & Adventure; Epic; Urban"
             },
             {
-                "Title": "The Complete Nuclear Dawn Box Set",
-                "Subtitle": "",
-                "Authors": "Kyla Stone",
-                "Narrators": "Stacey Glemboski",
-                "Length In Minutes": 2217,
-                "Description": "<p>Get the complete series in one audio bundle, with over 36 hours of apocalyptic action and nail-biting suspense. In a matter of seconds, nuclear bombs destroy multiple American cities.</p>",
-                "Publisher": "Paper Moon Press",
-                "Series Names": "Nuclear Dawn",
-                "Series Order": "1-5",
-                "Community Rating: Overall": 4.51101636886597,
-                "Community Rating: Performance": 4.67505741119385,
-                "Community Rating: Story": 4.46630954742432,
-                "Date Published": "2021-11-24",
-                "Categories": "Post-Apocalyptic; Suspense; Dystopian"
+                title: "He Who Fights with Monsters 2",
+                subtitle: "He Who Fights with Monsters, Book 2",
+                authors: "Shirtaloon, Travis Deverell",
+                narrators: "Heath Miller",
+                length: 1321,
+                description: "<p>The path from retail middle management to inter-dimensional wizard adventurer wasn’t easy.</p>",
+                publisher: "Podium Audio",
+                series: "He Who Fights with Monsters",
+                seriesOrder: "2 : He Who Fights with Monsters",
+                ratingOverall: 4.86962747573853,
+                ratingPerformance: 4.90455961227417,
+                ratingStory: 4.85375213623047,
+                datePublished: "2021-05-18",
+                categories: "Action & Adventure; Epic"
             },
             {
-                "Title": "Countdown",
-                "Subtitle": "Reality Benders Series, Book 1",
-                "Authors": "Michael Atamanov",
-                "Narrators": "Rudy Sanda",
-                "Length In Minutes": 749,
-                "Description": "<p>At long last, an extraterrestrial civilization reached out and made the First Contact. However, no one on Earth took their communique for the genuine article.</p>",
-                "Publisher": "Tantor Audio",
-                "Series Names": "Reality Benders",
-                "Series Order": "1",
-                "Community Rating: Overall": 4.66347312927246,
-                "Community Rating: Performance": 4.57603073120117,
-                "Community Rating: Story": 4.67824983596802,
-                "Date Published": "2018-06-19",
-                "Categories": "Space Opera; Adventure; Cyberpunk; LitRPG"
+                title: "He Who Fights with Monsters 3",
+                subtitle: "He Who Fights with Monsters, Book 3",
+                authors: "Shirtaloon, Travis Deverell",
+                narrators: "Heath Miller",
+                length: 1479,
+                description: "<p>For all that Jason knows, life is amazing. But he's about to learn that all his new power, wealth...</p>",
+                publisher: "Podium Audio",
+                series: "He Who Fights with Monsters",
+                seriesOrder: "3 : He Who Fights with Monsters",
+                ratingOverall: 4.84873914718628,
+                ratingPerformance: 4.9113302230835,
+                ratingStory: 4.82110452651978,
+                datePublished: "2021-09-07",
+                categories: "Paranormal; Action & Adventure; Epic; Cyberpunk"
             },
             {
-                "Title": "Neuromancer",
-                "Subtitle": "",
-                "Authors": "William Gibson",
-                "Narrators": "Robertson Dean",
-                "Length In Minutes": 631,
-                "Description": "<b>Neuromancer</b> is the multiple award-winning novel that launched the astonishing career of William Gibson. The first fully-realized glimpse of humankind's digital future.",
-                "Publisher": "Penguin Audio",
-                "Series Names": "Sprawl Trilogy Series",
-                "Series Order": "1",
-                "Community Rating: Overall": 4.2788348197937,
-                "Community Rating: Performance": 4.20174074172974,
-                "Community Rating: Story": 4.33997583389282,
-                "Date Published": "2011-06-30",
-                "Categories": "Hard Science Fiction; Cyberpunk; Technothrillers; Classics"
+                title: "He Who Fights with Monsters 4",
+                subtitle: "He Who Fights with Monsters, Book 4",
+                authors: "Shirtaloon, Travis Deverell",
+                narrators: "Heath Miller",
+                length: 1340,
+                description: "<p>In the wake of an unexpected homecoming, Jason questions if there is still a place for him...</p>",
+                publisher: "Podium Audio",
+                series: "He Who Fights with Monsters",
+                seriesOrder: "4 : He Who Fights with Monsters",
+                ratingOverall: 4.83120536804199,
+                ratingPerformance: 4.91869783401489,
+                ratingStory: 4.78681230545044,
+                datePublished: "2021-12-28",
+                categories: "Fantasy; Action & Adventure; Epic; Urban"
             },
             {
-                "Title": "The Complete Sunset on America Series",
-                "Subtitle": "A Thrilling Post-Apocalyptic Survival Saga",
-                "Authors": "Ryan Schow",
-                "Narrators": "Kevin Pierce",
-                "Length In Minutes": 3525,
-                "Description": "<p>Burning Hollow, Tennessee has always been a town divided. For a century, the powerful Bickmore and Banks families fought for control, creating generational wounds. When an EMP attack plunges America into chaos, that bitter feud ignites.</p>",
-                "Publisher": "River City Publishing",
-                "Series Names": "Sunset on America",
-                "Series Order": "Omnibus",
-                "Community Rating: Overall": 4.47337961196899,
-                "Community Rating: Performance": 4.74109268188477,
-                "Community Rating: Story": 4.41567707061768,
-                "Date Published": "2025-11-13",
-                "Categories": "Post-Apocalyptic; Genre Fiction; Dystopian"
+                title: "He Who Fights with Monsters 5",
+                subtitle: "He Who Fights with Monsters, Book 5",
+                authors: "Shirtaloon, Travis Deverell",
+                narrators: "Heath Miller",
+                length: 1205,
+                description: "<p>Jason has discovered that his homeworld is not what he thought...</p>",
+                publisher: "Podium Audio",
+                series: "He Who Fights with Monsters",
+                seriesOrder: "5 : He Who Fights with Monsters",
+                ratingOverall: 4.82813787460327,
+                ratingPerformance: 4.9177680015564,
+                ratingStory: 4.78761100769043,
+                datePublished: "2022-04-05",
+                categories: "Paranormal; Epic; Urban; Cyberpunk; Action & Adventure"
             },
             {
-                "Title": "The Girl Who Could Move S--t With Her Mind",
-                "Subtitle": "",
-                "Authors": "Jackson Ford",
-                "Narrators": "Graham Haldstead, Lauren Patten",
-                "Length In Minutes": 804,
-                "Description": "<p>For Teagan Frost, s--t just got real.&nbsp; Teagan Frost is having a hard time keeping it together. Sure, she's got telekinetic powers - a skill that the government is all too happy to make use of...</p>",
-                "Publisher": "Little, Brown Audio",
-                "Series Names": "The Frost Files",
-                "Series Order": "1",
-                "Community Rating: Overall": 4.17142868041992,
-                "Community Rating: Performance": 4.47741937637329,
-                "Community Rating: Story": 4.05228757858276,
-                "Date Published": "2019-06-18",
-                "Categories": "Adventure; Thriller; Sci-Fi"
+                title: "He Who Fights with Monsters 6",
+                subtitle: "He Who Fights with Monsters, Book 6",
+                authors: "Shirtaloon, Travis Deverell",
+                narrators: "Heath Miller",
+                length: 949,
+                description: "<p>The world teeters on the brink of destruction. The people who should be saving Earth...</p>",
+                publisher: "Podium Audio",
+                series: "He Who Fights with Monsters",
+                seriesOrder: "6 : He Who Fights with Monsters",
+                ratingOverall: 4.87462949752808,
+                ratingPerformance: 4.94787311553955,
+                ratingStory: 4.84311199188232,
+                datePublished: "2022-06-28",
+                categories: "Paranormal; Action & Adventure; Epic"
             },
             {
-                "Title": "Induction",
-                "Subtitle": "Welcome to the Multiverse, Book 1",
-                "Authors": "Sean Oswald",
-                "Narrators": "Travis Baldree",
-                "Length In Minutes": 740,
-                "Description": "<p>The apocalypse is coming, but only a lucky—or perhaps unlucky—few know. Silas is inducted into the System, becoming the last in a long line of Earth's \"forerunners.\"</p>",
-                "Publisher": "Podium Audio",
-                "Series Names": "Welcome to the Multiverse",
-                "Series Order": "1",
-                "Community Rating: Overall": 4.56277704238892,
-                "Community Rating: Performance": 4.78640556335449,
-                "Community Rating: Story": 4.52537155151367,
-                "Date Published": "2023-11-07",
-                "Categories": "First Contact; Adventure; Post-Apocalyptic; LitRPG"
+                title: "He Who Fights with Monsters 7",
+                subtitle: "He Who Fights with Monsters, Book 7",
+                authors: "Shirtaloon, Travis Deverell",
+                narrators: "Heath Miller",
+                length: 1119,
+                description: "<p>Jason arrives at a kingdom in peril and he's surprised to discover that it's not his job to save it...</p>",
+                publisher: "Podium Audio",
+                series: "He Who Fights with Monsters",
+                seriesOrder: "7 : He Who Fights with Monsters",
+                ratingOverall: 4.89751195907593,
+                ratingPerformance: 4.95238542556763,
+                ratingStory: 4.87218761444092,
+                datePublished: "2022-09-13",
+                categories: "Paranormal; Action & Adventure; Urban"
+            },
+            {
+                title: "He Who Fights with Monsters 8",
+                subtitle: "He Who Fights with Monsters, Book 8",
+                authors: "Shirtaloon, Travis Deverell",
+                narrators: "Heath Miller",
+                length: 1092,
+                description: "<p>After a much longed-for reunion, Jason Asano works on moving past old traumas...</p>",
+                publisher: "Podium Audio",
+                series: "He Who Fights with Monsters",
+                seriesOrder: "8 : He Who Fights with Monsters",
+                ratingOverall: 4.83943605422974,
+                ratingPerformance: 4.94032716751099,
+                ratingStory: 4.79992723464966,
+                datePublished: "2022-12-13",
+                categories: "Paranormal; Epic; Action & Adventure"
+            },
+            {
+                title: "He Who Fights with Monsters 9",
+                subtitle: "He Who Fights with Monsters, Book 9",
+                authors: "Shirtaloon, Travis Deverell",
+                narrators: "Heath Miller",
+                length: 1683,
+                description: "<p>With the Builder threat behind them, the time has finally come for Jason and his team...</p>",
+                publisher: "Podium Audio",
+                series: "He Who Fights with Monsters",
+                seriesOrder: "9 : He Who Fights with Monsters",
+                ratingOverall: 4.83085584640503,
+                ratingPerformance: 4.91947460174561,
+                ratingStory: 4.80708074569702,
+                datePublished: "2023-04-18",
+                categories: "Paranormal; Action & Adventure; Epic"
+            },
+            {
+                title: "He Who Fights with Monsters 10",
+                subtitle: "He Who Fights with Monsters, Book 10",
+                authors: "Shirtaloon, Travis Deverell",
+                narrators: "Heath Miller",
+                length: 1518,
+                description: "<p>A subterranean power creates strange bedfellows for Jason and his friends...</p>",
+                publisher: "Podium Audio",
+                series: "He Who Fights with Monsters",
+                seriesOrder: "10 : He Who Fights with Monsters",
+                ratingOverall: 4.78475284576416,
+                ratingPerformance: 4.91693162918091,
+                ratingStory: 4.73133420944214,
+                datePublished: "2023-11-28",
+                categories: "Paranormal; Action & Adventure; Epic"
+            },
+            {
+                title: "He Who Fights with Monsters 11: A LitRPG Adventure",
+                subtitle: "He Who Fights with Monsters, Book 11",
+                authors: "Shirtaloon, Travis Deverell",
+                narrators: "Heath Miller",
+                length: 1579,
+                description: "<p>Jason and his companions managed to forestall the inexorable undead...</p>",
+                publisher: "Podium Audio",
+                series: "He Who Fights with Monsters",
+                seriesOrder: "11 : He Who Fights with Monsters",
+                ratingOverall: 4.86663913726807,
+                ratingPerformance: 4.94385099411011,
+                ratingStory: 4.83465957641602,
+                datePublished: "2024-07-23",
+                categories: "Paranormal; Action & Adventure; Epic"
+            },
+            {
+                title: "He Who Fights with Monsters 12: A LitRPG Adventure",
+                subtitle: "He Who Fights with Monsters, Book 12",
+                authors: "Shirtaloon, Travis Deverell",
+                narrators: "Heath Miller",
+                length: 1166,
+                description: "<p>Twenty years ago, Jason was pulled into a world of magic and monsters...</p>",
+                publisher: "Podium Audio",
+                series: "He Who Fights with Monsters",
+                seriesOrder: "12 : He Who Fights with Monsters",
+                ratingOverall: 4.80778026580811,
+                ratingPerformance: 4.92780065536499,
+                ratingStory: 4.76102828979492,
+                datePublished: "2025-05-20",
+                categories: "Paranormal; Action & Adventure; Epic"
+            },
+            {
+                title: "Lost Light: The Complete Survival Thriller Series Box Set",
+                subtitle: "",
+                authors: "Kyla Stone",
+                narrators: "Stacey Glemboski",
+                length: 3351,
+                description: "<p>The Lost Light complete series omnibus is now available...</p>",
+                publisher: "Paper Moon Press",
+                series: "Lost Light",
+                seriesOrder: "1-4 : Lost Light",
+                ratingOverall: 4.58505582809448,
+                ratingPerformance: 4.67953014373779,
+                ratingStory: 4.5755033493042,
+                datePublished: "2024-12-26",
+                categories: "Fantasy; Post-Apocalyptic; Action & Adventure; Technothrillers"
+            },
+            {
+                title: "The Mayor of Noobtown",
+                subtitle: "Noobtown, Book 1",
+                authors: "Ryan Rimmel",
+                narrators: "Johnathan McClain",
+                length: 543,
+                description: "<p>It could be worse. You could be stuck with a literal shoulder demon...</p>",
+                publisher: "Podium Audio",
+                series: "Noobtown",
+                seriesOrder: "1 : Noobtown",
+                ratingOverall: 4.59044551849365,
+                ratingPerformance: 4.71240377426147,
+                ratingStory: 4.56865787506104,
+                datePublished: "2019-08-13",
+                categories: "Action & Adventure; Epic; Urban"
+            },
+            {
+                title: "The Complete Nuclear Dawn Box Set",
+                subtitle: "",
+                authors: "Kyla Stone",
+                narrators: "Stacey Glemboski",
+                length: 2217,
+                description: "<p>Get the complete series in one audio bundle, with over 36 hours...</p>",
+                publisher: "Paper Moon Press",
+                series: "Nuclear Dawn",
+                seriesOrder: "1-5 : Nuclear Dawn",
+                ratingOverall: 4.51101636886597,
+                ratingPerformance: 4.67505741119385,
+                ratingStory: 4.46630954742432,
+                datePublished: "2021-11-24",
+                categories: "Post-Apocalyptic; Suspense; Dystopian"
+            },
+            {
+                title: "Countdown",
+                subtitle: "Reality Benders Series, Book 1",
+                authors: "Michael Atamanov, Andrew Schmitt - translator",
+                narrators: "Rudy Sanda",
+                length: 749,
+                description: "<p>At long last, an extraterrestrial civilization reached out...</p>",
+                publisher: "Tantor Audio",
+                series: "Reality Benders",
+                seriesOrder: "1 : Reality Benders",
+                ratingOverall: 4.66347312927246,
+                ratingPerformance: 4.57603073120117,
+                ratingStory: 4.67824983596802,
+                datePublished: "2018-06-19",
+                categories: "Space Opera; Adventure; Cyberpunk"
+            },
+            {
+                title: "Neuromancer",
+                subtitle: "",
+                authors: "William Gibson",
+                narrators: "Robertson Dean",
+                length: 631,
+                description: "Neuromancer is the multiple award-winning novel...",
+                publisher: "Penguin Audio",
+                series: "Sprawl Trilogy Series",
+                seriesOrder: "1 : Sprawl Trilogy Series",
+                ratingOverall: 4.2788348197937,
+                ratingPerformance: 4.20174074172974,
+                ratingStory: 4.33997583389282,
+                datePublished: "2011-06-30",
+                categories: "Hard Science Fiction; Cyberpunk; Technothrillers; Classics"
+            },
+            {
+                title: "The Complete Sunset on America Series",
+                subtitle: "A Thrilling Post-Apocalyptic Survival Saga",
+                authors: "Ryan Schow",
+                narrators: "Kevin Pierce",
+                length: 3525,
+                description: "<p>USA TODAY BESTSELLING AUTHOR & #1 POST-APOCALYPTIC FICTION AUTHOR...</p>",
+                publisher: "River City Publishing",
+                series: "Sunset on America",
+                seriesOrder: " : Sunset on America",
+                ratingOverall: 4.47337961196899,
+                ratingPerformance: 4.74109268188477,
+                ratingStory: 4.41567707061768,
+                datePublished: "2025-11-13",
+                categories: "Post-Apocalyptic; Genre Fiction; Dystopian"
+            },
+            {
+                title: "The Girl Who Could Move S--t With Her Mind",
+                subtitle: "",
+                authors: "Jackson Ford",
+                narrators: "Graham Haldstead, Lauren Patten",
+                length: 804,
+                description: "<p>For Teagan Frost, s--t just got real.</p>",
+                publisher: "Little, Brown Audio",
+                series: "The Frost Files",
+                seriesOrder: "1 : The Frost Files",
+                ratingOverall: 4.17142868041992,
+                ratingPerformance: 4.47741937637329,
+                ratingStory: 4.05228757858276,
+                datePublished: "2019-06-18",
+                categories: "Adventure"
+            },
+            {
+                title: "Induction",
+                subtitle: "Welcome to the Multiverse, Book 1",
+                authors: "Sean Oswald",
+                narrators: "Travis Baldree",
+                length: 740,
+                description: "<p>The apocalypse is coming, but only a lucky—or perhaps unlucky—few know...</p>",
+                publisher: "Podium Audio",
+                series: "Welcome to the Multiverse",
+                seriesOrder: "1 : Welcome to the Multiverse",
+                ratingOverall: 4.56277704238892,
+                ratingPerformance: 4.78640556335449,
+                ratingStory: 4.52537155151367,
+                datePublished: "2023-11-07",
+                categories: "First Contact; Adventure; Post-Apocalyptic"
             }
         ];
 
-        // Unique dynamic Categories mapping for covers and filters
+        // State variables
+        let currentLayout = 'grid'; // grid | list
+        let activeCategory = 'all';
+        let searchQuery = '';
+        let currentSort = 'rating';
+
+        // Styling palettes matching category genres dynamically
         const categoryGradients = {
-            "Adventure": "from-amber-600 to-orange-950",
-            "LitRPG": "from-purple-800 to-blue-950",
-            "Hard Science Fiction": "from-cyan-800 to-indigo-950",
-            "Post-Apocalyptic": "from-red-800 to-amber-950",
-            "Fantasy": "from-indigo-700 to-purple-950",
-            "Space Opera": "from-blue-800 to-slate-950",
-            "Time Travel": "from-teal-700 to-emerald-950",
-            "Suspense": "from-rose-800 to-slate-950",
-            "Default": "from-slate-700 to-gray-950"
+            "Adventure": "from-amber-600 to-yellow-500",
+            "Science Fiction": "from-cyan-600 to-blue-600",
+            "Hard Science Fiction": "from-sky-700 to-indigo-800",
+            "Post-Apocalyptic": "from-red-900 to-stone-700",
+            "Dystopian": "from-zinc-800 to-orange-950",
+            "Fantasy": "from-purple-800 to-violet-600",
+            "Space Opera": "from-slate-900 via-indigo-950 to-slate-900",
+            "Default": "from-brand-600 to-amber-600"
         };
 
-        let selectedCategory = null;
+        const categoryIcons = {
+            "Adventure": "compass",
+            "Science Fiction": "rocket",
+            "Hard Science Fiction": "orbit",
+            "Post-Apocalyptic": "skull",
+            "Dystopian": "shield-alert",
+            "Fantasy": "wand-2",
+            "Space Opera": "sparkles",
+            "Default": "book"
+        };
 
-        // Utility: Convert minutes to Days, Hours, Minutes
-        function formatMinutes(totalMins) {
-            const days = Math.floor(totalMins / 1440);
-            const hours = Math.floor((totalMins % 1440) / 60);
-            const mins = totalMins % 60;
-            
-            let output = "";
-            if (days > 0) output += `${days}d `;
-            if (hours > 0) output += `${hours}h `;
-            output += `${mins}m`;
-            return output;
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initStats();
+            initCategoryFilters();
+            render();
+
+            // Event Listeners
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase().trim();
+                render();
+            });
+
+            document.getElementById('sort-select').addEventListener('change', (e) => {
+                currentSort = e.target.value;
+                render();
+            });
+
+            document.getElementById('category-filter').addEventListener('change', (e) => {
+                activeCategory = e.target.value;
+                updateFilterBadges();
+                render();
+            });
+
+            document.getElementById('view-grid').addEventListener('click', () => {
+                setLayout('grid');
+            });
+
+            document.getElementById('view-list').addEventListener('click', () => {
+                setLayout('list');
+            });
+
+            document.getElementById('clear-filters-btn').addEventListener('click', resetFilters);
+        });
+
+        function initStats() {
+            // Count
+            document.getElementById('stat-book-count').textContent = `${libraryData.length} audiobooks`;
+            document.getElementById('card-count').textContent = libraryData.length;
+
+            // Total Listening Time in Minutes
+            const totalMinutes = libraryData.reduce((acc, curr) => acc + curr.length, 0);
+            const d = Math.floor(totalMinutes / (24 * 60));
+            const h = Math.floor((totalMinutes % (24 * 60)) / 60);
+            const m = totalMinutes % 60;
+
+            const listensString = `${d}d ${h}h ${m}m`;
+            document.getElementById('stat-total-time').textContent = listensString;
+            document.getElementById('card-hours').textContent = `${Math.round(totalMinutes / 60)} hrs`;
+
+            // Average Overall Rating
+            const booksWithRatings = libraryData.filter(b => b.ratingOverall > 0);
+            const averageRating = booksWithRatings.reduce((acc, curr) => acc + curr.ratingOverall, 0) / booksWithRatings.length;
+            document.getElementById('card-rating').textContent = averageRating.toFixed(2);
+
+            // Longest Book
+            const longestBook = libraryData.reduce((prev, current) => (prev.length > current.length) ? prev : current);
+            document.getElementById('card-longest').textContent = `${longestBook.title} (${Math.round(longestBook.length/60)}h)`;
         }
 
-        // Initialize Metrics
-        function calculateStats(booksList) {
-            const totalBooks = booksList.length;
-            const totalMins = booksList.reduce((acc, book) => acc + book["Length In Minutes"], 0);
-            
-            // Ratings average
-            const ratedBooks = booksList.filter(b => b["Community Rating: Overall"] > 0);
-            const avgRating = ratedBooks.reduce((acc, b) => acc + b["Community Rating: Overall"], 0) / (ratedBooks.length || 1);
-            
-            // Longest book
-            let longest = { "Title": "None", "Length In Minutes": 0 };
-            booksList.forEach(book => {
-                if (book["Length In Minutes"] > longest["Length In Minutes"]) {
-                    longest = book;
+        function initCategoryFilters() {
+            const categoriesSet = new Set();
+            libraryData.forEach(book => {
+                if (book.categories) {
+                    book.categories.split(';').forEach(cat => categoriesSet.add(cat.trim()));
                 }
             });
 
-            document.getElementById('stat-total-books').textContent = totalBooks;
-            document.getElementById('stat-total-time').textContent = formatMinutes(totalMins);
-            document.getElementById('stat-total-mins').textContent = totalMins.toLocaleString();
-            document.getElementById('stat-avg-rating').textContent = avgRating.toFixed(2);
-            document.getElementById('stat-longest-title').textContent = longest["Title"];
-            document.getElementById('stat-longest-hours').textContent = formatMinutes(longest["Length In Minutes"]);
-        }
+            const sortedCategories = Array.from(categoriesSet).sort();
+            const selectEl = document.getElementById('category-filter');
 
-        // Populate Category Filters dynamically
-        function setupFilters(booksList) {
-            const categories = new Set();
-            booksList.forEach(book => {
-                const cats = book["Categories"].split(";");
-                cats.forEach(c => categories.add(c.trim()));
-            });
-
-            const container = document.getElementById('category-badges');
-            container.innerHTML = "";
-
-            categories.forEach(cat => {
-                const btn = document.createElement('button');
-                btn.className = "text-xs px-3 py-1.5 rounded-full border border-gray-800 bg-gray-900/60 hover:bg-gray-800 hover:text-white transition cursor-pointer";
-                btn.textContent = cat;
-                btn.onclick = () => filterByCategory(cat, btn);
-                container.appendChild(btn);
+            sortedCategories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                selectEl.appendChild(opt);
             });
         }
 
-        function filterByCategory(cat, btnElement) {
-            const allBadges = document.querySelectorAll('#category-badges button');
-            
-            if (selectedCategory === cat) {
-                // Toggle off
-                selectedCategory = null;
-                allBadges.forEach(b => {
-                    b.className = "text-xs px-3 py-1.5 rounded-full border border-gray-800 bg-gray-900/60 hover:bg-gray-800 hover:text-white transition cursor-pointer";
-                });
+        function getCategoryStyle(catString) {
+            if (!catString) return { gradient: categoryGradients.Default, icon: categoryIcons.Default };
+            const primaryCat = catString.split(';')[0].trim();
+            return {
+                gradient: categoryGradients[primaryCat] || categoryGradients.Default,
+                icon: categoryIcons[primaryCat] || categoryIcons.Default
+            };
+        }
+
+        function setLayout(layout) {
+            currentLayout = layout;
+
+            const gridBtn = document.getElementById('view-grid');
+            const listBtn = document.getElementById('view-list');
+
+            const gridContainer = document.getElementById('books-grid');
+            const listContainer = document.getElementById('books-list');
+
+            if (layout === 'grid') {
+                gridBtn.className = "flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-500/30 bg-brand-500/10 text-brand-500 text-xs transition-all";
+                listBtn.className = "flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200";
+
+                gridContainer.classList.remove('hidden');
+                listContainer.classList.add('hidden');
             } else {
-                selectedCategory = cat;
-                allBadges.forEach(b => {
-                    b.className = "text-xs px-3 py-1.5 rounded-full border border-gray-800 bg-gray-900/60 hover:bg-gray-800 hover:text-white transition cursor-pointer";
-                });
-                btnElement.className = "text-xs px-3 py-1.5 rounded-full border border-amber-500 bg-amber-500/10 text-amber-400 font-bold transition cursor-pointer shadow-lg shadow-amber-500/5";
+                listBtn.className = "flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-500/30 bg-brand-500/10 text-brand-500 text-xs transition-all";
+                gridBtn.className = "flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs transition-all hover:bg-slate-900 hover:text-slate-200";
+
+                listContainer.classList.remove('hidden');
+                gridContainer.classList.add('hidden');
             }
-            renderGrid();
+            render();
         }
 
-        // Get cover styling gradient based on first category match
-        function getCoverGradient(categoriesStr) {
-            const list = categoriesStr.split(";").map(c => c.trim());
-            for (let cat of list) {
-                if (categoryGradients[cat]) return categoryGradients[cat];
+        function updateFilterBadges() {
+            const container = document.getElementById('active-filters-container');
+            const badgesDiv = document.getElementById('filter-badges');
+
+            badgesDiv.innerHTML = '';
+
+            if (activeCategory === 'all' && !searchQuery) {
+                container.classList.add('hidden');
+                return;
             }
-            return categoryGradients["Default"];
+
+            container.classList.remove('hidden');
+
+            if (activeCategory !== 'all') {
+                badgesDiv.appendChild(createBadge(`Category: ${activeCategory}`, () => {
+                    activeCategory = 'all';
+                    document.getElementById('category-filter').value = 'all';
+                    updateFilterBadges();
+                    render();
+                }));
+            }
+
+            if (searchQuery) {
+                badgesDiv.appendChild(createBadge(`Query: "${searchQuery}"`, () => {
+                    searchQuery = '';
+                    document.getElementById('search-input').value = '';
+                    updateFilterBadges();
+                    render();
+                }));
+            }
         }
 
-        // Render Book Grid
-        function renderGrid() {
-            const searchQuery = document.getElementById('search-input').value.toLowerCase();
-            const sortBy = document.getElementById('sort-select').value;
-            const grid = document.getElementById('books-grid');
+        function createBadge(text, onRemove) {
+            const span = document.createElement('span');
+            span.className = "inline-flex items-center gap-1 bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-md text-[11px]";
+            span.innerHTML = `<span>${text}</span>`;
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = "text-slate-500 hover:text-red-400 ml-0.5 font-bold transition-colors";
+            closeBtn.innerHTML = "&times;";
+            closeBtn.onclick = onRemove;
+
+            span.appendChild(closeBtn);
+            return span;
+        }
+
+        function resetFilters() {
+            searchQuery = '';
+            activeCategory = 'all';
+            currentSort = 'rating';
+
+            document.getElementById('search-input').value = '';
+            document.getElementById('category-filter').value = 'all';
+            document.getElementById('sort-select').value = 'rating';
+
+            updateFilterBadges();
+            render();
+        }
+
+        function getFilteredAndSortedData() {
+            // Filtering
+            let result = libraryData.filter(book => {
+                // Category Filter
+                let matchesCategory = true;
+                if (activeCategory !== 'all') {
+                    matchesCategory = book.categories && book.categories.split(';').map(c => c.trim()).includes(activeCategory);
+                }
+
+                // Search Filter
+                let matchesSearch = true;
+                if (searchQuery) {
+                    matchesSearch = (
+                        book.title.toLowerCase().includes(searchQuery) ||
+                        (book.subtitle && book.subtitle.toLowerCase().includes(searchQuery)) ||
+                        book.authors.toLowerCase().includes(searchQuery) ||
+                        book.narrators.toLowerCase().includes(searchQuery) ||
+                        (book.series && book.series.toLowerCase().includes(searchQuery)) ||
+                        (book.publisher && book.publisher.toLowerCase().includes(searchQuery))
+                    );
+                }
+
+                return matchesCategory && matchesSearch;
+            });
+
+            // Sorting
+            result.sort((a, b) => {
+                if (currentSort === 'rating') {
+                    return b.ratingOverall - a.ratingOverall;
+                } else if (currentSort === 'length_desc') {
+                    return b.length - a.length;
+                } else if (currentSort === 'length_asc') {
+                    return a.length - b.length;
+                } else if (currentSort === 'title') {
+                    return a.title.localeCompare(b.title);
+                } else if (currentSort === 'published') {
+                    return new Date(b.datePublished) - new Date(a.datePublished);
+                }
+                return 0;
+            });
+
+            return result;
+        }
+
+        function render() {
+            const data = getFilteredAndSortedData();
+            const gridContainer = document.getElementById('books-grid');
+            const listBody = document.getElementById('books-list-body');
             const emptyState = document.getElementById('empty-state');
 
-            // Apply Filters
-            let filtered = rawLibrary.filter(book => {
-                const matchesSearch = 
-                    book["Title"].toLowerCase().includes(searchQuery) ||
-                    book["Authors"].toLowerCase().includes(searchQuery) ||
-                    book["Narrators"].toLowerCase().includes(searchQuery) ||
-                    (book["Series Names"] && book["Series Names"].toLowerCase().includes(searchQuery)) ||
-                    book["Description"].toLowerCase().includes(searchQuery);
-
-                let matchesCategory = true;
-                if (selectedCategory) {
-                    matchesCategory = book["Categories"].split(";").map(c => c.trim()).includes(selectedCategory);
-                }
-
-                return matchesSearch && matchesCategory;
-            });
-
-            // Apply Sorting
-            if (sortBy === 'rating-desc') {
-                filtered.sort((a, b) => b["Community Rating: Overall"] - a["Community Rating: Overall"]);
-            } else if (sortBy === 'length-desc') {
-                filtered.sort((a, b) => b["Length In Minutes"] - a["Length In Minutes"]);
-            } else if (sortBy === 'length-asc') {
-                filtered.sort((a, b) => a["Length In Minutes"] - b["Length In Minutes"]);
-            } else if (sortBy === 'date-desc') {
-                filtered.sort((a, b) => new Date(b["Date Published"]) - new Date(a["Date Published"]));
-            } else if (sortBy === 'title-asc') {
-                filtered.sort((a, b) => a["Title"].localeCompare(b["Title"]));
-            }
-
-            document.getElementById('results-count').textContent = `${filtered.length} titles`;
-
-            if (filtered.length === 0) {
-                grid.innerHTML = "";
+            // Hide/Show Empty State
+            if (data.length === 0) {
                 emptyState.classList.remove('hidden');
+                gridContainer.classList.add('hidden');
+                document.getElementById('books-list').classList.add('hidden');
                 return;
             } else {
                 emptyState.classList.add('hidden');
+                if (currentLayout === 'grid') gridContainer.classList.remove('hidden');
+                else document.getElementById('books-list').classList.remove('hidden');
             }
 
-            grid.innerHTML = filtered.map((book, idx) => {
-                const gradient = getCoverGradient(book["Categories"]);
-                const categoriesList = book["Categories"].split(";").slice(0, 2).map(c => c.trim());
-                const seriesText = book["Series Names"] ? `${book["Series Names"]} (#${book["Series Order"]})` : '';
+            if (currentLayout === 'grid') {
+                gridContainer.innerHTML = '';
+                data.forEach((book, idx) => {
+                    gridContainer.appendChild(createCompactGridCard(book, idx));
+                });
+            } else {
+                listBody.innerHTML = '';
+                data.forEach((book, idx) => {
+                    listBody.appendChild(createListRow(book, idx));
+                });
+            }
 
-                return `
-                    <div class="bg-gray-900/60 hover:bg-gray-900 border border-gray-800/80 hover:border-gray-700 rounded-2xl p-4 flex flex-col justify-between transition duration-200 group hover:-translate-y-1 shadow-md cursor-pointer" onclick="openModal(${JSON.stringify(book).replace(/"/g, '&quot;')})">
-                        <div class="space-y-3">
-                            <!-- Procedural Audio Cover Mockup -->
-                            <div class="aspect-square rounded-xl bg-gradient-to-br ${gradient} p-4 flex flex-col justify-between relative overflow-hidden shadow-inner select-none">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10 z-0"></div>
-                                <div class="w-1 h-full bg-white/10 absolute left-0 top-0 bottom-0 z-10"></div>
-                                
-                                <span class="relative z-10 text-[9px] font-extrabold uppercase tracking-wider bg-black/55 backdrop-blur px-2 py-0.5 rounded-full border border-white/10 text-white self-start">${categoriesList[0]}</span>
-                                
-                                <div class="relative z-10">
-                                    <h4 class="font-extrabold text-white text-sm leading-tight line-clamp-2">${book["Title"]}</h4>
-                                    <p class="text-[10px] text-amber-400 font-semibold line-clamp-1 mt-0.5">${book["Authors"]}</p>
-                                </div>
-                            </div>
+            // Always update standard vector icons generated dynamically
+            lucide.createIcons();
+        }
 
-                            <!-- Content Meta -->
-                            <div class="space-y-1.5">
-                                ${seriesText ? `<span class="text-[10px] font-bold text-amber-500 uppercase tracking-wider">${seriesText}</span>` : ''}
-                                <h3 class="font-bold text-white text-base leading-snug line-clamp-1 group-hover:text-amber-500 transition duration-150">${book["Title"]}</h3>
-                                <p class="text-xs text-gray-400 line-clamp-1">By: <span class="font-medium text-gray-300">${book["Authors"]}</span></p>
-                                <p class="text-[11px] text-gray-500 line-clamp-1">Narrated: <span class="text-gray-400">${book["Narrators"]}</span></p>
-                            </div>
-                        </div>
+        // Creates short, ultra-clean vertical grid cards without repeating title and author
+        function createCompactGridCard(book, idx) {
+            const card = document.createElement('div');
+            card.className = "group bg-slate-900/60 border border-slate-800/80 rounded-lg hover:border-slate-700/80 hover:bg-slate-900 transition-all duration-300 shadow-sm flex flex-col justify-between overflow-hidden cursor-pointer";
+            card.onclick = () => openModal(book);
 
-                        <!-- Card Footer stats -->
-                        <div class="mt-4 pt-3 border-t border-gray-800/80 flex items-center justify-between text-xs text-gray-400">
-                            <span class="flex items-center space-x-1">
-                                <span class="text-amber-500">★</span>
-                                <span class="font-bold text-gray-200">${parseFloat(book["Community Rating: Overall"]).toFixed(1)}</span>
-                            </span>
-                            <span class="flex items-center space-x-1">
-                                <svg class="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <span>${formatMinutes(book["Length In Minutes"])}</span>
-                            </span>
+            const style = getCategoryStyle(book.categories);
+            const hours = Math.floor(book.length / 60);
+            const mins = book.length % 60;
+            const hoursLabel = hours > 0 ? `${hours}h ` : '';
+            const lengthStr = `${hoursLabel}${mins}m`;
+
+            // Card HTML: Compact structure, 100px header, Title & Author exactly ONCE
+            card.innerHTML = `
+                <!-- Sleek minimal cover header block -->
+                <div class="h-16 bg-gradient-to-r ${style.gradient} relative px-3 py-2 flex items-center justify-between overflow-hidden">
+                    <div class="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-colors"></div>
+                    <i data-lucide="${style.icon}" class="w-5 h-5 text-slate-950/70 z-10"></i>
+                    <span class="text-[9px] font-bold text-slate-950/80 tracking-wider uppercase z-10 max-w-[70%] truncate">
+                        ${book.series ? book.series : (book.categories ? book.categories.split(';')[0] : '')}
+                    </span>
+                </div>
+
+                <!-- Book details: Snug and compact, title/author displayed exactly once -->
+                <div class="p-3 flex-1 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-100 group-hover:text-brand-500 transition-colors leading-snug line-clamp-1" title="${book.title}">
+                            ${book.title}
+                        </h3>
+                        <p class="text-[11px] text-slate-400 font-medium truncate mt-0.5">By ${book.authors}</p>
+                        <p class="text-[10px] text-slate-500 truncate italic">Narrator: ${book.narrators}</p>
+                    </div>
+
+                    <!-- Bottom inline stats -->
+                    <div class="flex items-center justify-between border-t border-slate-800/50 pt-2 mt-2">
+                        <span class="inline-flex items-center gap-1 text-[10px] text-slate-400">
+                            <i data-lucide="clock" class="w-3 h-3 text-slate-500"></i>
+                            ${lengthStr}
+                        </span>
+                        <span class="inline-flex items-center gap-0.5 text-[10px] font-semibold text-brand-500">
+                            <i data-lucide="star" class="w-3 h-3 fill-brand-500 text-brand-500"></i>
+                            ${book.ratingOverall ? book.ratingOverall.toFixed(1) : '--'}
+                        </span>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        // Creates extremely clean row item for List layout
+        function createListRow(book, idx) {
+            const row = document.createElement('tr');
+            row.className = "hover:bg-slate-900/80 transition-colors duration-150 cursor-pointer text-slate-300";
+            row.onclick = () => openModal(book);
+
+            const hours = Math.floor(book.length / 60);
+            const mins = book.length % 60;
+            const lengthStr = `${hours > 0 ? hours + 'h ' : ''}${mins}m`;
+
+            row.innerHTML = `
+                <td class="p-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-1.5 h-6 rounded-full bg-gradient-to-b ${getCategoryStyle(book.categories).gradient} shrink-0"></div>
+                        <div>
+                            <span class="font-semibold text-slate-100 block max-w-xs sm:max-w-md truncate">${book.title}</span>
+                            ${book.subtitle ? `<span class="text-[10px] text-slate-500 block truncate">${book.subtitle}</span>` : ''}
                         </div>
                     </div>
-                `;
-            }).join('');
+                </td>
+                <td class="p-3 text-slate-400 max-w-[120px] truncate">${book.authors}</td>
+                <td class="p-3 text-slate-500 max-w-[150px] truncate">${book.narrators}</td>
+                <td class="p-3 text-center font-mono whitespace-nowrap text-slate-400">${lengthStr}</td>
+                <td class="p-3 text-center">
+                    <span class="inline-flex items-center gap-0.5 text-brand-500 font-semibold font-mono">
+                        <i data-lucide="star" class="w-3.5 h-3.5 fill-brand-500 text-brand-500 inline"></i>
+                        ${book.ratingOverall ? book.ratingOverall.toFixed(1) : '--'}
+                    </span>
+                </td>
+                <td class="p-3 text-right">
+                    <button class="text-[10px] px-2.5 py-1 bg-slate-800 hover:bg-slate-700 hover:text-white rounded-md transition-colors text-slate-300">
+                        Details
+                    </button>
+                </td>
+            `;
+            return row;
         }
 
-        // Star rating generator helper
-        function generateStarHTML(rating) {
-            const parsed = parseFloat(rating);
-            const fullStars = Math.floor(parsed);
-            const halfStar = parsed % 1 >= 0.5 ? 1 : 0;
-            const emptyStars = 5 - fullStars - halfStar;
-            
-            let html = "";
-            for (let i = 0; i < fullStars; i++) html += '★';
-            if (halfStar) html += '½';
-            for (let i = 0; i < emptyStars; i++) html += '☆';
-            return html;
-        }
-
-        // Modal Handlers
+        // Cinematic Modal Control Functions
         function openModal(book) {
-            const modal = document.getElementById('book-modal');
-            const gradient = getCoverGradient(book["Categories"]);
-            const firstCat = book["Categories"].split(";")[0].trim();
+            const modal = document.getElementById('detail-modal');
+            const card = document.getElementById('modal-card');
 
-            // Populate covers
-            const coverDiv = document.getElementById('modal-cover');
-            coverDiv.className = `aspect-square w-full rounded-2xl flex flex-col justify-between p-5 relative overflow-hidden shadow-lg border border-gray-700/50 bg-gradient-to-br ${gradient}`;
-            document.getElementById('modal-cover-badge').textContent = firstCat;
-            document.getElementById('modal-cover-title').textContent = book["Title"];
-            document.getElementById('modal-cover-author').textContent = book["Authors"];
+            // Set Cover colors and symbols
+            const style = getCategoryStyle(book.categories);
+            const coverArt = document.getElementById('modal-cover-art');
+            coverArt.className = `w-32 h-32 md:w-40 md:h-40 rounded-xl flex flex-col justify-between p-3.5 shrink-0 shadow-lg text-slate-950 bg-gradient-to-br ${style.gradient}`;
+            coverArt.innerHTML = `
+                <i data-lucide="${style.icon}" class="w-7 h-7 text-slate-950/70"></i>
+                <span class="font-extrabold text-[10px] uppercase tracking-wider block text-right text-slate-950/80" id="modal-cover-cat">${book.categories ? book.categories.split(';')[0] : 'STORY'}</span>
+            `;
 
-            // Populating core text
-            document.getElementById('modal-title').textContent = book["Title"];
-            document.getElementById('modal-subtitle').textContent = book["Subtitle"] || "";
-            document.getElementById('modal-author').textContent = book["Authors"];
-            document.getElementById('modal-narrator').textContent = book["Narrators"];
-            document.getElementById('modal-length').textContent = formatMinutes(book["Length In Minutes"]);
-            document.getElementById('modal-date').textContent = book["Date Published"];
-            
-            const publisherEl = document.getElementById('modal-publisher');
-            publisherEl.textContent = book["Publisher"];
-            publisherEl.title = book["Publisher"];
-
-            // Series Handling
+            // Series Badge
             const seriesBadge = document.getElementById('modal-series-badge');
-            if (book["Series Names"]) {
-                seriesBadge.textContent = `${book["Series Names"]} • Book ${book["Series Order"]}`;
+            if (book.series) {
+                seriesBadge.textContent = `${book.series} #${book.seriesOrder ? book.seriesOrder.split(':')[0].trim() : ''}`;
                 seriesBadge.classList.remove('hidden');
             } else {
                 seriesBadge.classList.add('hidden');
             }
 
-            // Ratings Handling
-            const overall = parseFloat(book["Community Rating: Overall"]);
-            const perf = parseFloat(book["Community Rating: Performance"]);
-            const story = parseFloat(book["Community Rating: Story"]);
+            // Title block (shown once in detail)
+            document.getElementById('modal-title').textContent = book.title;
+            document.getElementById('modal-subtitle').textContent = book.subtitle || '';
+            document.getElementById('modal-author').textContent = book.authors;
+            document.getElementById('modal-narrator').textContent = book.narrators;
+            document.getElementById('modal-publisher').textContent = book.publisher || 'N/A';
+            document.getElementById('modal-published-date').textContent = book.datePublished || 'N/A';
 
-            document.getElementById('rating-overall-stars').textContent = generateStarHTML(overall);
-            document.getElementById('rating-overall-value').textContent = overall.toFixed(2);
+            // Time translation
+            const hours = Math.floor(book.length / 60);
+            const mins = book.length % 60;
+            document.getElementById('modal-duration').textContent = `${hours}h ${mins}m`;
 
-            document.getElementById('rating-perf-stars').textContent = generateStarHTML(perf);
-            document.getElementById('rating-perf-value').textContent = perf.toFixed(2);
+            // Individual Sub-Ratings
+            document.getElementById('modal-rating-story').textContent = book.ratingStory ? book.ratingStory.toFixed(2) : '--';
+            document.getElementById('modal-rating-perf').textContent = book.ratingPerformance ? book.ratingPerformance.toFixed(2) : '--';
 
-            document.getElementById('rating-story-stars').textContent = generateStarHTML(story);
-            document.getElementById('rating-story-value').textContent = story.toFixed(2);
+            // Description raw content
+            document.getElementById('modal-description').innerHTML = book.description || '<p class="text-slate-500 italic">No publisher synopsis available.</p>';
 
-            // Rich description injection safely
-            document.getElementById('modal-description').innerHTML = book["Description"] || "No publisher summary available.";
+            // Show animation triggers
+            modal.classList.remove('pointer-events-none');
+            modal.classList.add('opacity-100');
+            card.classList.remove('scale-95');
+            card.classList.add('scale-100');
 
-            // Animation transition triggers
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-            }, 10);
+            lucide.createIcons();
         }
 
         function closeModal() {
-            const modal = document.getElementById('book-modal');
-            modal.classList.add('opacity-0');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
+            const modal = document.getElementById('detail-modal');
+            const card = document.getElementById('modal-card');
+
+            modal.classList.remove('opacity-100');
+            modal.classList.add('pointer-events-none');
+            card.classList.add('scale-95');
+            card.classList.remove('scale-100');
         }
 
-        // Close modal when clicking outside contents
-        window.onclick = function(event) {
-            const modal = document.getElementById('book-modal');
-            if (event.target === modal) {
+        // Close modal if user clicks outside of target container card
+        document.getElementById('detail-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('detail-modal')) {
                 closeModal();
             }
-        }
-
-        // Register Event Listeners
-        document.getElementById('search-input').addEventListener('input', renderGrid);
-        document.getElementById('sort-select').addEventListener('change', renderGrid);
-        document.getElementById('reset-btn').addEventListener('click', () => {
-            document.getElementById('search-input').value = "";
-            document.getElementById('sort-select').value = "default";
-            selectedCategory = null;
-            
-            // reset all badges visually
-            const allBadges = document.querySelectorAll('#category-badges button');
-            allBadges.forEach(b => {
-                b.className = "text-xs px-3 py-1.5 rounded-full border border-gray-800 bg-gray-900/60 hover:bg-gray-800 hover:text-white transition cursor-pointer";
-            });
-
-            renderGrid();
         });
-
-        // App Boot
-        calculateStats(rawLibrary);
-        setupFilters(rawLibrary);
-        renderGrid();
     </script>
 </body>
 </html>
