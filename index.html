@@ -2,17 +2,18 @@
 <html lang="en" class="dark">
 <head>
     <!--
-        Audible Archive Dashboard
-        Version: 5.5.0
+        eBook Library Dashboard
+        Version: 5.6.0
         Changes:
-        - Incremented semantic version number to 5.5.0
-        - Increased card top cover height by 50% (from 80px to 120px) and adjusted total grid card height to 195px.
-        - Standardized category pills wrapping behavior across cards with background images and standard gradients.
-        - Removed categories overlay badge from the dynamic cover visualizer inside the modal.
+        - Incremented semantic version number to 5.6.0
+        - Changed application name and references from "Audible" to "eBook" across title, headers, metadata, and controls
+        - Updated HTML page title to "eBook Library Dashboard"
+        - Updated the branding icon from headphones to a book logo
+        - Renamed stats panels from "Total Audiobooks" to "Total eBooks" for platform consistency
     -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Audible Library Dashboard</title>
+    <title>eBook Library Dashboard</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons for clean vector glyphs -->
@@ -26,7 +27,7 @@
                         brand: {
                             50: '#fffbeb',
                             100: '#fef3c7',
-                            500: '#f59e0b', // Audible Orange
+                            500: '#f59e0b', // eBook Orange
                             600: '#d97706',
                             900: '#78350f',
                         },
@@ -79,11 +80,11 @@
         <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <div class="bg-brand-500 text-slate-950 p-2 rounded-lg font-bold flex items-center justify-center">
-                    <i data-lucide="headphones" class="w-6 h-6"></i>
+                    <i data-lucide="book-open" class="w-6 h-6"></i>
                 </div>
                 <div>
                     <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                        Audible Archive <span class="text-xs bg-slate-800 text-brand-500 border border-brand-500/20 px-2 py-0.5 rounded-full">2026</span>
+                        eBook Library <span class="text-xs bg-slate-800 text-brand-500 border border-brand-500/20 px-2 py-0.5 rounded-full">2026</span>
                     </h1>
                     <p class="text-xs text-slate-400">Interactive Collection Explorer</p>
                 </div>
@@ -130,7 +131,7 @@
                         <i data-lucide="book-open" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Total Audiobooks</p>
+                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Total eBooks</p>
                         <p class="text-xl font-bold text-slate-100" id="card-count">0</p>
                     </div>
                 </div>
@@ -609,7 +610,7 @@
         // Build standard statistics summaries
         function initStats() {
             // Count
-            document.getElementById('stat-book-count').textContent = `${libraryData.length} audiobooks`;
+            document.getElementById('stat-book-count').textContent = `${libraryData.length} eBooks`;
             document.getElementById('card-count').textContent = libraryData.length;
 
             // Total Listening Time in Minutes
@@ -638,6 +639,7 @@
             }
         }
 
+        // Dynamic genres extraction
         function initCategoryFilters() {
             const categoriesSet = new Set();
             libraryData.forEach(book => {
@@ -660,6 +662,7 @@
             });
         }
 
+        // Dynamic narrators extraction
         function initNarratorFilters() {
             const narratorsSet = new Set();
             libraryData.forEach(book => {
@@ -1086,7 +1089,7 @@
             }
         }
 
-        // Creates compact tactile cover grid card (Height adjusted to 195px, banner increased by 50% to h-[120px])
+        // Creates compact tactile cover grid card (Height 195px, dynamic covers taller header h-[120px])
         function createCompactGridCard(book) {
             const card = document.createElement('div');
             card.className = "group bg-slate-900/60 border border-slate-800/80 rounded-lg hover:border-slate-700/80 hover:bg-slate-900 transition-all duration-300 shadow-md flex flex-col justify-between overflow-hidden cursor-pointer h-[195px]";
@@ -1132,7 +1135,7 @@
                 : `<span class="${catBadgeClass}">STORY</span>`;
 
             card.innerHTML = `
-                <!-- Dynamic gradient or image cover block (h-[120px] for expanded 50% larger presentation) -->
+                <!-- Dynamic gradient or image cover block (h-[120px] for expanded taller banner) -->
                 <div class="h-[120px] bg-gradient-to-br ${style.gradient} relative p-2.5 flex flex-col justify-between overflow-hidden shrink-0" style="${coverStyle}">
                     <!-- Dark translucent overlay to guarantee typography and icon readability -->
                     <div class="${overlayClass}"></div>
@@ -1367,7 +1370,7 @@
                     lucide.createIcons();
                 }).catch(err => {
                     console.error("Audio playback error:", err);
-                    alert("Unable to play audiobook file. Please check that the file is located inside your 'bookFiles/' directory.");
+                    alert("Unable to play eBook audio file. Please check that the file is located inside your 'bookFiles/' directory.");
                 });
             } else {
                 activeAudio.pause();

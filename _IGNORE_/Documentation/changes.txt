@@ -36,3 +36,20 @@ Changes:
 - Standardized category pills wrapping behavior across cards with background images and standard gradients.
 - Removed categories overlay badge from the dynamic cover visualizer inside the modal.
 
+Version: 5.6.0
+Changes:
+- Incremented semantic version number to 5.6.0
+- Changed application name and references from "Audible" to "eBook" across title, headers, metadata, and controls
+- Updated HTML page title to "eBook Library Dashboard"
+- Updated the branding icon from headphones to a book logo
+- Renamed stats panels from "Total Audiobooks" to "Total eBooks" for platform consistency
+
+
+
+
+
+
+
+
+
+
