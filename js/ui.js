@@ -297,8 +297,12 @@ window.AudiobookApp.ui = {
         const utils = window.AudiobookApp.utils;
         const card = document.createElement('article');
 
+        // Resolve absolute unique ID
+        const bookId = utils.getBookId(book);
+        card.setAttribute('data-book-id', bookId);
+
         // Listen tracking visualization modifiers
-        const isListened = state.listenedSet.has(book.asin);
+        const isListened = state.listenedSet.has(bookId);
         const listenedBgModifier = isListened ? 'border-emerald-500/30 bg-emerald-950/5' : 'border-slate-800/80 bg-slate-900/60';
 
         card.className = `group ${listenedBgModifier} border rounded-lg hover:border-slate-700/80 hover:bg-slate-900 transition-all duration-300 shadow-md flex flex-col justify-between overflow-hidden cursor-pointer min-h-[195px] h-auto`;
@@ -312,7 +316,7 @@ window.AudiobookApp.ui = {
         const volNum = book.seriesOrder ? book.seriesOrder.split(':')[0].trim() : '#';
 
         // Retrieve saved playback percentage
-        const savedProgress = state.playbackProgressMap[book.asin] || 0;
+        const savedProgress = state.playbackProgressMap[bookId] || 0;
 
         let lazyBgAttribute = '';
         if (book.backgroundImage) {
@@ -338,7 +342,7 @@ window.AudiobookApp.ui = {
             : `<span class="${catBadgeClass}">AUDIOBOOK</span>`;
 
         card.innerHTML = `
-            <div class="min-h-[120px] h-auto bg-gradient-to-br ${style.gradient} relative p-2.5 flex flex-col justify-between shrink-0" ${lazyBgAttribute} id="card-cover-${book.asin}">
+            <div class="min-h-[120px] h-auto bg-gradient-to-br ${style.gradient} relative p-2.5 flex flex-col justify-between shrink-0" ${lazyBgAttribute} id="card-cover-${bookId}">
                 <div class="${overlayClass}"></div>
                 <div class="absolute -right-6 -bottom-6 w-16 h-16 bg-white/5 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500"></div>
 
@@ -399,7 +403,7 @@ window.AudiobookApp.ui = {
         `;
 
         if (this.lazyObserver) {
-            const coverBlock = card.querySelector(`#card-cover-${book.asin}`);
+            const coverBlock = card.querySelector(`#card-cover-${bookId}`);
             if (coverBlock && book.backgroundImage) {
                 this.lazyObserver.observe(coverBlock);
             }
@@ -416,8 +420,11 @@ window.AudiobookApp.ui = {
         const utils = window.AudiobookApp.utils;
         const row = document.createElement('tr');
 
-        const isListened = state.listenedSet.has(book.asin);
-        const progressPercentage = state.playbackProgressMap[book.asin] || 0;
+        const bookId = utils.getBookId(book);
+        row.setAttribute('data-book-id', bookId);
+        
+        const isListened = state.listenedSet.has(bookId);
+        const progressPercentage = state.playbackProgressMap[bookId] || 0;
 
         row.className = `${isListened ? 'bg-emerald-950/5 hover:bg-emerald-950/10' : 'hover:bg-slate-900/80'} transition-colors duration-150 cursor-pointer text-slate-300`;
         row.onclick = () => this.openModal(book);
@@ -491,16 +498,19 @@ window.AudiobookApp.ui = {
     },
 
     /**
-     * Synchronize and visualizes active sorting arrow chevrons
+     * Synchronizes sort icon elements safely. Overwrites sort containers completely
+     * to eliminate Lucide SVG replacement collisions.
      */
     updateSortIcons: function() {
         const state = window.AudiobookApp.state;
         const fields = ['title', 'author', 'progress', 'length', 'rating'];
+
+        // 1. Reset all containers with standard placeholder tags
         fields.forEach(f => {
-            const iconEl = document.getElementById(`sort-icon-${f}`);
-            if (iconEl) {
-                iconEl.setAttribute('data-lucide', 'chevrons-up-down');
-                iconEl.className = 'w-3.5 h-3.5 text-slate-500 shrink-0';
+            const container = document.getElementById(`sort-icon-container-${f}`);
+            if (container) {
+                container.innerHTML = `<i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>`;
+                lucide.createIcons({ node: container });
             }
         });
 
@@ -524,14 +534,15 @@ window.AudiobookApp.ui = {
             isAsc = state.currentSort === 'rating_asc';
         }
 
+        // 2. Hydrate active column's icon container safely
         if (activeField) {
-            const activeIcon = document.getElementById(`sort-icon-${activeField}`);
-            if (activeIcon) {
-                activeIcon.setAttribute('data-lucide', isAsc ? 'chevron-up' : 'chevron-down');
-                activeIcon.className = 'w-3.5 h-3.5 text-brand-500 font-bold shrink-0';
+            const activeContainer = document.getElementById(`sort-icon-container-${activeField}`);
+            if (activeContainer) {
+                const iconName = isAsc ? 'chevron-up' : 'chevron-down';
+                activeContainer.innerHTML = `<i data-lucide="${iconName}" class="w-3.5 h-3.5 text-brand-500 font-bold shrink-0"></i>`;
+                lucide.createIcons({ node: activeContainer });
             }
         }
-        lucide.createIcons();
     },
 
     /**
@@ -543,6 +554,9 @@ window.AudiobookApp.ui = {
         const modal = document.getElementById('detail-modal');
         const card = document.getElementById('modal-card');
 
+        // Extract stable ID
+        const bookId = utils.getBookId(book);
+
         const style = utils.getCategoryStyle(book.categories);
         const coverArt = document.getElementById('modal-cover-art');
         coverArt.className = `w-32 h-32 md:w-40 md:h-40 rounded-xl flex flex-col justify-between p-3.5 shrink-0 shadow-lg text-slate-950 bg-gradient-to-br ${style.gradient} relative overflow-hidden`;
@@ -550,7 +564,7 @@ window.AudiobookApp.ui = {
         let coverImgStyle = '';
         if (book.backgroundImage) {
             let imgPath = book.backgroundImage;
-            if (!imgPath.startsWith('backgroundImage/') && !imgPath.startsWith('http://') && !imgPath.startsWith('https://') && !imgPath.startsWith('./')) {
+            if (!imgPath.startsWith('backgroundImage/')) {
                 imgPath = 'backgroundImage/' + imgPath;
             }
             coverImgStyle = `background-image: url('${imgPath}'); background-size: cover; background-position: center;`;
@@ -605,7 +619,7 @@ window.AudiobookApp.ui = {
 
             const downloadBtn = document.getElementById('modal-download-btn');
             let filePath = book.bookFile;
-            if (!filePath.startsWith('bookFiles/') && !filePath.startsWith('http://') && !filePath.startsWith('https://') && !filePath.startsWith('./')) {
+            if (!filePath.startsWith('bookFiles/')) {
                 filePath = 'bookFiles/' + filePath;
             }
             downloadBtn.href = filePath;
@@ -616,16 +630,16 @@ window.AudiobookApp.ui = {
         // Listened Toggle setup inside modal (Fixed to prevent querySelector null references)
         const listenedBtn = document.getElementById('modal-listened-btn');
         const updateListenedButtonUI = () => {
-            const isCompleted = state.listenedSet.has(book.asin);
+            const isCompleted = state.listenedSet.has(bookId);
             const iconName = isCompleted ? 'check-circle' : 'check';
             const btnText = isCompleted ? 'Completed' : 'Mark Completed';
-            
+
             if (isCompleted) {
                 listenedBtn.className = "w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-500 text-slate-950 font-bold text-xs rounded-lg transition-all shadow-md active:scale-95";
             } else {
                 listenedBtn.className = "w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg transition-all border border-slate-700 shadow-sm active:scale-95";
             }
-            
+
             // Overwriting absolute inner markup template prevents querySelector reference bugs
             listenedBtn.innerHTML = `<i data-lucide="${iconName}" class="w-3.5 h-3.5"></i> <span>${btnText}</span>`;
             lucide.createIcons({ node: listenedBtn });
@@ -634,7 +648,7 @@ window.AudiobookApp.ui = {
 
         listenedBtn.onclick = (e) => {
             e.stopPropagation();
-            state.toggleListened(book.asin);
+            state.toggleListened(bookId);
             updateListenedButtonUI();
             this.updateStats();
             this.render();

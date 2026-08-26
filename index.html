@@ -147,7 +147,7 @@
             <nav class="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-6 shadow-xl" aria-label="Audiobook Catalog Controls">
                 <div class="flex flex-col gap-4">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
-                        
+
                         <!-- Search Bar -->
                         <div class="relative lg:col-span-3">
                             <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
@@ -171,6 +171,7 @@
                                     <option value="author_desc">Author (Z-A)</option>
                                     <option value="narrator_asc">Narrator (A-Z)</option>
                                     <option value="narrator_desc">Narrator (Z-A)</option>
+                                    <option value="progress">Playback Progress</option>
                                     <option value="published">Date Published</option>
                                 </select>
                             </div>
@@ -226,34 +227,44 @@
                     <table class="w-full text-left border-collapse text-xs select-none">
                         <thead>
                             <tr class="bg-slate-900/90 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
-                                <th class="p-3 cursor-pointer hover:text-white transition-colors" onclick="window.AudiobookApp.ui.handleHeaderSort('title')">
+                                <th class="p-3 cursor-pointer hover:text-white transition-colors text-xs" onclick="window.AudiobookApp.ui.handleHeaderSort('title')">
                                     <div class="flex items-center gap-1">
                                         <span>Title & Series</span>
-                                        <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0" id="sort-icon-title"></i>
+                                        <span id="sort-icon-container-title" class="inline-flex items-center">
+                                            <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>
+                                        </span>
                                     </div>
                                 </th>
-                                <th class="p-3 cursor-pointer hover:text-white transition-colors" onclick="window.AudiobookApp.ui.handleHeaderSort('author')">
+                                <th class="p-3 cursor-pointer hover:text-white transition-colors text-xs" onclick="window.AudiobookApp.ui.handleHeaderSort('author')">
                                     <div class="flex items-center gap-1">
                                         <span>Author</span>
-                                        <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0" id="sort-icon-author"></i>
+                                        <span id="sort-icon-container-author" class="inline-flex items-center">
+                                            <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>
+                                        </span>
                                     </div>
                                 </th>
-                                <th class="p-3 cursor-pointer hover:text-white transition-colors" onclick="window.AudiobookApp.ui.handleHeaderSort('progress')">
+                                <th class="p-3 cursor-pointer hover:text-white transition-colors text-xs" onclick="window.AudiobookApp.ui.handleHeaderSort('progress')">
                                     <div class="flex items-center gap-1">
                                         <span>Playback Progress</span>
-                                        <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0" id="sort-icon-progress"></i>
+                                        <span id="sort-icon-container-progress" class="inline-flex items-center">
+                                            <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>
+                                        </span>
                                     </div>
                                 </th>
-                                <th class="p-3 text-center cursor-pointer hover:text-white transition-colors" onclick="window.AudiobookApp.ui.handleHeaderSort('length')">
+                                <th class="p-3 text-center cursor-pointer hover:text-white transition-colors text-xs" onclick="window.AudiobookApp.ui.handleHeaderSort('length')">
                                     <div class="flex items-center justify-center gap-1">
                                         <span>Length</span>
-                                        <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0" id="sort-icon-length"></i>
+                                        <span id="sort-icon-container-length" class="inline-flex items-center">
+                                            <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>
+                                        </span>
                                     </div>
                                 </th>
-                                <th class="p-3 text-center cursor-pointer hover:text-white transition-colors" onclick="window.AudiobookApp.ui.handleHeaderSort('rating')">
+                                <th class="p-3 text-center cursor-pointer hover:text-white transition-colors text-xs" onclick="window.AudiobookApp.ui.handleHeaderSort('rating')">
                                     <div class="flex items-center justify-center gap-1">
                                         <span>Rating</span>
-                                        <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0" id="sort-icon-rating"></i>
+                                        <span id="sort-icon-container-rating" class="inline-flex items-center">
+                                            <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>
+                                        </span>
                                     </div>
                                 </th>
                                 <th class="p-3 text-right">Action</th>
@@ -319,7 +330,7 @@
                             <button id="modal-play-btn" class="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs rounded-lg transition-all shadow-md active:scale-95">
                                 <i data-lucide="play" class="w-3.5 h-3.5 fill-slate-950"></i> Play Audio
                             </button>
-                            <!-- Elegant "Mark Listened" Toggle inside the action drawer -->
+                            <!-- Listened Toggle inside the action drawer -->
                             <button id="modal-listened-btn" class="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg transition-all border border-slate-700 shadow-sm active:scale-95">
                                 <i data-lucide="check" class="w-3.5 h-3.5"></i> <span>Mark Listened</span>
                             </button>

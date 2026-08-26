@@ -1,7 +1,6 @@
 /**
  * Audiobook Library Utilities Module
- * Encapsulates sorting algorithms, categorizers, and calculation helpers.
- * Implements math conversions, deep search queries, data sorting formulas, and dynamic filter structures.
+ * Encapsulates sorting algorithms, categorizers, unique ID handlers, and helpers.
  */
 window.AudiobookApp = window.AudiobookApp || {};
 
@@ -16,6 +15,17 @@ window.AudiobookApp.utils = {
         "Fantasy": { gradient: "from-purple-800 to-violet-600", icon: "wand-2" },
         "Space Opera": { gradient: "from-slate-900 via-indigo-950 to-slate-900", icon: "sparkles" },
         "Default": { gradient: "from-brand-600 to-amber-600", icon: "headphones" }
+    },
+
+    /**
+     * Safely resolves a completely unique, crash-proof string identifier for a book.
+     * Prioritizes 'asin', then 'id', and falls back to a sanitized title-author composite key.
+     * Replaces any characters that are invalid in CSS selectors with underscores.
+     */
+    getBookId: function(book) {
+        if (!book) return '';
+        const rawId = book.asin || book.id || `${book.title}-${book.authors}`;
+        return rawId.replace(/[^a-zA-Z0-9-_]/g, '_');
     },
 
     /**
@@ -91,7 +101,7 @@ window.AudiobookApp.utils = {
      */
     getFilteredAndSortedData: function() {
         const state = window.AudiobookApp.state;
-        
+
         // 1. Run Filters
         let filtered = state.libraryData.filter(book => {
             let matchesCategory = true;
@@ -121,8 +131,10 @@ window.AudiobookApp.utils = {
 
         // 2. Run Sorters
         filtered.sort((a, b) => {
-            const progressA = state.playbackProgressMap[a.asin] || 0;
-            const progressB = state.playbackProgressMap[b.asin] || 0;
+            const idA = this.getBookId(a);
+            const idB = this.getBookId(b);
+            const progressA = state.playbackProgressMap[idA] || 0;
+            const progressB = state.playbackProgressMap[idB] || 0;
 
             switch (state.currentSort) {
                 case 'rating_desc':

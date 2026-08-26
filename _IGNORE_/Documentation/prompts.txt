@@ -504,3 +504,119 @@ AI Response:
 Output: index.html, js/state.js, js/utils.js, js/ui.js, js/main.js
 NOTE:
 
+Error:
+    When I click on a card I get the following error:
+    Uncaught TypeError: Cannot read properties of null (reading 'setAttribute') at updateListenedButtonUI () at Object.openModal () at window.AudiobookApp.ui.createCompactGridCard.card.onclick ()
+
+Fix:
+    An excellent catch! You have run into a classic React-like issue in raw vanilla JS setups when using icon libraries like Lucide.
+
+    The Root Cause of the Bug
+    When the application first loads, Lucide scans the document for <i data-lucide="..."> tags and replaces them entirely with new vector <svg> nodes.
+    Because the original <i> tag is destroyed and replaced by an <svg> tag, the subsequent selector query listenedBtn.querySelector('i') evaluates to null. Trying to run .setAttribute(...) on it throws the Uncaught TypeError crash you encountered.
+
+    The Fix
+    To solve this permanently, we will update the UI functions in js/ui.js and js/main.js to dynamically overwrite the button's template using fresh <i> tags right before calling lucide.createIcons(). This prevents cached DOM element reference errors entirely.
+
+    Below are the corrected, fully-optimized modular files.
+
+    Key Corrections Handled in This Release:
+    Dynamic Overwrites: The updateListenedButtonUI logic inside js/ui.js now updates innerHTML by introducing fresh <i> tags prior to parsing icons with Lucide. This fully bypasses the Uncaught TypeError crash by ensuring the code never calls .setAttribute() on a replaced vector SVG element.
+
+    Synchronized Playback Controls: Applied the same template restoration method in js/main.js to handle play/pause button state changes on the custom audio player, ensuring that toggling audio will never cause element reference errors on mobile or desktop browsers.
+
+
+
+Prompt: "Are there any other areas in the code where similar icon replacement issues might occur?"
+AI Response:
+Yes, there is another major area in the codebase where this exact Lucide icon replacement bug will occur: the **List View Table Sort Headers** (`updateSortIcons` inside `js/ui.js`).
+
+### The Hidden Bug: Table Sort Headers
+In the previous implementation of `updateSortIcons`, the code attempted to select the icon element directly:
+```javascript
+const iconEl = document.getElementById(`sort-icon-${f}`);
+if (iconEl) {
+    iconEl.setAttribute('data-lucide', 'chevrons-up-down');
+    // ...
+}
+```
+Just like the "Listened" button issue, on the initial load, Lucide replaces the `<i>` tag with an `<svg>` tag.
+
+When a user clicks a table header to sort:
+1. The code changes the `data-lucide` attribute on the already-converted `<svg>` element.
+2. It calls `lucide.createIcons()`.
+3. **The failure occurs**: Lucide's engine expects `data-lucide` to be on a standard placeholder element (like an `<i>` or `<span>`). When called on an already existing `<svg>` element, it either fails to replace it, nests SVGs inside each other, or throws errors.
+
+### The Architect's Fix
+To make the application completely robust and crash-proof, we will refactor all dynamic icon states to use **Container Wrapping**:
+1. In `index.html`, we wrap each table header icon inside a dedicated container: `<span id="sort-icon-container-title">...</span>`.
+2. In `js/ui.js`, `updateSortIcons` will now target this container, replace its `innerHTML` with a fresh, clean `<i>` element representing the target state, and then run a targeted `lucide.createIcons({ node: container })` call.
+
+Here is the fully corrected, modular codebase (Version 5.15.0) implementing this robust architectural pattern.
+
+### Key Refined Elements in Version 5.15.0:
+1. **Protected Sort Containers**: In `index.html`, standard sort labels now have `<span>` wrappers: `#sort-icon-container-title`, `#sort-icon-container-author`, and so on.
+2. **Robust Multi-Sort Synchronization**: The `updateSortIcons` handler resets all header spans with standard placeholder `<i>` elements prior to calling `lucide.createIcons()`. It then targets only the container of the active sorted column and inserts the correct directional icon (`chevron-up` / `chevron-down`).
+3. **Perfect Local Execution Compatibility**: No imports, no modules, and no external bundlers are required—it is completely modular, fast, and will work natively over the `file://` protocol.
+
+
+
+Error: When I click Mark As Read, it indicates on all cards as if the book has been read.
+AI Response:
+I will fix the bug that causes all cards to be marked as completed simultaneously.
+
+Why the Bug Occurred
+In the previous state logic, the application read book.asin to uniquely identify each audiobook. However, because standard library.json schemas do not always define an asin property, book.asin resolved to undefined for every single audiobook in your collection.
+
+When you clicked Mark Completed, the state engine added the key undefined to listenedSet. Consequently, when rendering, every single book checked state.listenedSet.has(undefined), which evaluated to true, instantly making every card appear completed.
+
+The Fix
+I have introduced a robust identifier helper getBookId(book) inside js/utils.js. It looks for book.asin, falls back to book.id, and if neither exists, dynamically generates a unique, stable composite key using the book's title and author: ${book.title}-${book.authors}.
+
+I've updated js/ui.js to consume this safe key, along with minor adjustments in state.js and main.js to ensure perfect synchronicity.
+
+Summary of Edits
+Dynamic Identifier Injection (getBookId in js/utils.js): Configured a bulletproof identifier resolver that extracts book.asin or book.id if they exist. If your library.json contains neither, it generates a unique, stable string using a title-author combination: ${book.title}-${book.authors}.
+
+State Segregation: Replaced all instances where book.asin was accessed directly with utils.getBookId(book). Toggle states, completion tracking, list row selectors, and local playback ratios are now safely tracked per audiobook.
+
+Table Sorting & Lucide Fixes: Retained the highly robust dynamic layout fix to guarantee sort chevrons remain perfectly aligned without throwing reference errors upon click execution.
+
+
+
+ERROR:
+ERROR: Now receiving the following error when the page loads:
+main.js:271
+ Local library lookup failed. SyntaxError: Failed to execute 'querySelector' on 'Element': '#card-cover-The_Butcher's_Masquerade-Matt_Dinniman' is not a valid selector.
+    at Object.createCompactGridCard (ui.js:405:37)
+    at ui.js:175:48
+    at Array.forEach (<anonymous>)
+    at Object.renderFlat (ui.js:174:18)
+    at Object.render (ui.js:164:18)
+    at main.js:268:20
+ui.js:405
+ Uncaught SyntaxError: Failed to execute 'querySelector' on 'Element': '#card-cover-The_Butcher's_Masquerade-Matt_Dinniman' is not a valid selector.
+    at Object.createCompactGridCard (ui.js:405:37)
+    at ui.js:175:48
+    at Array.forEach (<anonymous>)
+    at Object.renderFlat (ui.js:174:18)
+    at Object.render (ui.js:164:18)
+    at main.js:88:32
+
+AI Response:
+I will refactor and correct the selector engine and ID resolution logic across our modular codebase.
+
+### Why the Crash Occurred
+The `Uncaught SyntaxError` occurred because the unique identifier (`bookId`) for audiobooks like *The Butcher's Masquerade* contained a single quote character (`'`). Passing this directly into `document.querySelector('#card-cover-The_Butcher\'s_Masquerade...')` breaks CSS parsing rules because the raw single quote is treated as a syntax delimiter rather than part of the ID string.
+
+### The Architect's Fix
+1. **Sanitized ID Resolution**: I updated `utils.getBookId(book)` to sanitize the generated string using a regular expression: `replace(/[^a-zA-Z0-9-_]/g, '_')`. This completely strips out punctuation, single quotes, double quotes, and other invalid CSS selector characters, replacing them with safe underscores.
+2. **Data-Attribute Lookups**: Instead of using brittle inline `onclick` string selectors to find row elements, I added a formal `data-book-id` attribute on both the cards and rows. The update engines in `js/main.js` now target elements using clean, fast data attributes: `document.querySelector(\`[data-book-id="${bookId}"]\`)`.
+
+Here is your updated, robust modular codebase.
+
+### Changes Implemented:
+* **Sanitized ID RegEx Pattern**: Implemented `replace(/[^a-zA-Z0-9-_]/g, '_')` within `js/utils.js`'s `getBookId` handler to filter out illegal CSS selectors. The string `#card-cover-The_Butcher's_Masquerade-Matt_Dinniman` converts seamlessly into `#card-cover-The_Butcher_s_Masquerade-Matt_Dinniman`, preserving single double-click folder compatibility.
+* **Refined Data Element Bindings**: Added the `data-book-id` tag mapping onto the list view templates inside `js/ui.js`. `js/main.js` accesses and updates the progress timelines using these dedicated properties instead of relying on legacy selectors.
+
+
