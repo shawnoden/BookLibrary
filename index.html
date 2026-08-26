@@ -3,10 +3,16 @@
 <head>
     <!--
         eBook Library Dashboard
-        Version: 5.11.0
-        Changes:
-        - Incremented semantic version number to 5.11.0
-        - Added Overall Rating to the modal stats breakdown cards, updating the layout to 4 columns
+        Version: 5.12.0
+        Architecture & Enhancements:
+        - Sleek, high-contrast cinematic theme using Amber-500 accents and a absolute dark theme (#0b0f19).
+        - Embedded inline Vector SVG book icon favicon.
+        - Automatic asynchronous load of "library.json" with graceful, fully responsive fallback states.
+        - Interactive Stats Row displaying: Total eBooks, Total Hours, Avg Rating, and the Longest Book.
+        - Synchronized Dual-Sort System (List Column Headers + main sorting control drop-down).
+        - Multi-criteria filter system (Genres & Narrators parsed dynamically on initial file load).
+        - Series Grouping with automatic chronological volume sorting (using float volume numbering).
+        - Fully custom, high-fidelity Local Audio Media Player Engine featuring mouse-draggable scrubbing.
     -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,7 +32,7 @@
                         brand: {
                             50: '#fffbeb',
                             100: '#fef3c7',
-                            500: '#f59e0b', // eBook Orange
+                            500: '#f59e0b', // eBook Orange Accent
                             600: '#d97706',
                             900: '#78350f',
                         },
@@ -75,7 +81,7 @@
 <body class="text-slate-100 min-h-screen pb-24">
 
     <!-- Header & Navigation -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+    <header id="main-header" class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <div class="bg-brand-500 text-slate-950 p-2 rounded-lg font-bold flex items-center justify-center">
@@ -93,7 +99,7 @@
             <div class="flex items-center gap-6 text-sm text-slate-400">
                 <div class="text-center sm:text-right">
                     <span class="text-xs uppercase tracking-wider text-slate-500 block">Total Listening</span>
-                    <span class="font-semibold text-slate-200" id="stat-total-time">0h</span>
+                    <span class="font-semibold text-slate-200" id="stat-total-time">0d 0h 0m</span>
                 </div>
                 <div class="h-8 w-px bg-slate-800"></div>
                 <div class="text-center sm:text-right">
@@ -113,12 +119,12 @@
         </section>
 
         <!-- No Configured Library State (Fallback if library.json fails to load) -->
-        <section id="error-state" class="hidden flex flex-col items-center justify-center py-24 text-center">
-            <div class="p-4 bg-red-500/10 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-                <i data-lucide="alert-circle" class="w-8 h-8 text-red-500"></i>
+        <section id="error-state" class="hidden flex flex-col items-center justify-center py-32 text-center max-w-md mx-auto">
+            <div class="p-5 bg-red-500/10 rounded-full w-20 h-20 flex items-center justify-center mb-6 border border-red-500/25 shadow-lg shadow-red-500/5">
+                <i data-lucide="alert-circle" class="w-10 h-10 text-red-500"></i>
             </div>
-            <h3 class="text-lg font-bold text-white mb-2">Configuration Error</h3>
-            <p class="text-sm text-slate-400">We're sorry, but there is no library configured.</p>
+            <h3 class="text-xl font-bold text-white mb-2">Configuration Error</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">We're sorry, but there is no library configured.</p>
         </section>
 
         <!-- Main Dashboard Content wrapper (Hidden until file is loaded) -->
@@ -139,7 +145,7 @@
                         <i data-lucide="clock" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Listening Time</p>
+                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Total Hours</p>
                         <p class="text-xl font-bold text-slate-100" id="card-hours">0h</p>
                     </div>
                 </div>
@@ -156,9 +162,9 @@
                     <div class="p-3 bg-purple-500/10 rounded-lg text-purple-500">
                         <i data-lucide="award" class="w-5 h-5"></i>
                     </div>
-                    <div>
-                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Longest Listen</p>
-                        <p class="text-sm font-bold text-slate-100 truncate w-32 md:w-40" id="card-longest">None</p>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Longest Book</p>
+                        <p class="text-sm font-bold text-slate-100 truncate w-full" id="card-longest">None</p>
                     </div>
                 </div>
             </section>
@@ -305,7 +311,7 @@
 
                 <!-- Core Details Grid -->
                 <div class="flex flex-col md:flex-row gap-5">
-                    <!-- Dynamic Cover Visualizer (Removed Category Overlays) -->
+                    <!-- Dynamic Cover Visualizer (Removed Category Badge Overlays to keep cleanly visual) -->
                     <div id="modal-cover-art" class="w-32 h-32 md:w-40 md:h-40 rounded-xl flex flex-col justify-between p-3.5 shrink-0 shadow-lg text-slate-950">
                         <i data-lucide="book" class="w-7 h-7 opacity-60"></i>
                     </div>
@@ -414,7 +420,7 @@
         <!-- Progress bar and time labels -->
         <div class="flex items-center gap-2 text-[9px] text-slate-400">
             <span id="player-current-time">0:00</span>
-            <div class="flex-1 bg-slate-950 h-1 rounded-full overflow-hidden cursor-pointer relative" id="player-progress-container">
+            <div class="flex-1 bg-slate-950 h-2 rounded-full overflow-hidden cursor-pointer relative" id="player-progress-container">
                 <div id="player-progress-bar" class="bg-brand-500 h-full w-0 transition-all duration-100"></div>
             </div>
             <span id="player-duration">0:00</span>
@@ -434,8 +440,11 @@
         let activeCategory = 'all';
         let activeNarrator = 'all'; // Narrator filter state
         let searchQuery = '';
-        let currentSort = 'rating_desc'; // Upgraded from flat 'rating' to new schema
+        let currentSort = 'rating_desc'; // Default sorting
         let groupBySeries = false;
+
+        // Mouse dragging scrubbing states
+        let isDraggingProgress = false;
 
         // Styling palettes matching category genres dynamically
         const categoryGradients = {
@@ -535,7 +544,7 @@
 
             // Update Progress bar details
             activeAudio.addEventListener('timeupdate', () => {
-                if (activeAudio.duration) {
+                if (activeAudio.duration && !isDraggingProgress) {
                     const percent = (activeAudio.currentTime / activeAudio.duration) * 100;
                     progressBar.style.width = `${percent}%`;
                     currentTimeEl.textContent = formatTime(activeAudio.currentTime);
@@ -543,14 +552,48 @@
                 }
             });
 
-            // Support progress scrubbing
-            progressContainer.addEventListener('click', (e) => {
+            // Draggable & Clickable scrubber engine
+            const handleProgressScrub = (clientX) => {
                 const rect = progressContainer.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const width = rect.width;
+                let clickX = clientX - rect.left;
+                clickX = Math.max(0, Math.min(clickX, rect.width));
                 if (activeAudio.duration) {
-                    activeAudio.currentTime = (clickX / width) * activeAudio.duration;
+                    activeAudio.currentTime = (clickX / rect.width) * activeAudio.duration;
+                    const percent = (activeAudio.currentTime / activeAudio.duration) * 100;
+                    progressBar.style.width = `${percent}%`;
+                    currentTimeEl.textContent = formatTime(activeAudio.currentTime);
                 }
+            };
+
+            progressContainer.addEventListener('mousedown', (e) => {
+                isDraggingProgress = true;
+                handleProgressScrub(e.clientX);
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (isDraggingProgress) {
+                    handleProgressScrub(e.clientX);
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDraggingProgress = false;
+            });
+
+            // Touch support for mobile layouts
+            progressContainer.addEventListener('touchstart', (e) => {
+                isDraggingProgress = true;
+                handleProgressScrub(e.touches[0].clientX);
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (isDraggingProgress) {
+                    handleProgressScrub(e.touches[0].clientX);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', () => {
+                isDraggingProgress = false;
             });
 
             prevBtn.addEventListener('click', () => {
@@ -586,6 +629,7 @@
         async function attemptAutoFetch() {
             const loadingState = document.getElementById('loading-state');
             const errorState = document.getElementById('error-state');
+            const mainHeader = document.getElementById('main-header');
             try {
                 const response = await fetch('library.json');
                 if (!response.ok) throw new Error("Could not fetch library.json");
@@ -597,6 +641,10 @@
                 console.error("Failed to fetch library config dynamically.", err);
                 loadingState.classList.add('hidden');
                 errorState.classList.remove('hidden');
+
+                // Hide page controls and header completely when no library configuration is loaded
+                if (mainHeader) mainHeader.classList.add('hidden');
+                document.getElementById('dashboard-content').classList.add('hidden');
             }
         }
 
@@ -627,7 +675,7 @@
 
             const listensString = `${d}d ${h}h ${m}m`;
             document.getElementById('stat-total-time').textContent = listensString;
-            document.getElementById('card-hours').textContent = `${Math.round(totalMinutes / 60)} hrs`;
+            document.getElementById('card-hours').textContent = `${Math.round(totalMinutes / 60)}h`;
 
             // Average Overall Rating
             const booksWithRatings = libraryData.filter(b => (b.ratingOverall || 0) > 0);
@@ -636,10 +684,11 @@
                 : 0;
             document.getElementById('card-rating').textContent = averageRating.toFixed(2);
 
-            // Longest Book
+            // Longest Book (with hours)
             if (libraryData.length > 0) {
                 const longestBook = libraryData.reduce((prev, current) => ((prev.length || 0) > (current.length || 0)) ? prev : current);
-                document.getElementById('card-longest').textContent = `${longestBook.title} (${Math.round((longestBook.length || 0)/60)}h)`;
+                const longestHours = Math.round((longestBook.length || 0) / 60);
+                document.getElementById('card-longest').textContent = `${longestBook.title} (${longestHours}h)`;
             } else {
                 document.getElementById('card-longest').textContent = "None";
             }
@@ -673,7 +722,6 @@
             const narratorsSet = new Set();
             libraryData.forEach(book => {
                 if (book.narrators) {
-                    // Split in case of multiple narrators separated by commas
                     book.narrators.split(',').forEach(narrator => narratorsSet.add(narrator.trim()));
                 }
             });
@@ -868,8 +916,8 @@
         // Helper to extract series volume number for numeric ordering
         function getSeriesNumber(seriesOrder) {
             if (!seriesOrder) return 999;
-            const match = seriesOrder.match(/\d+/);
-            return match ? parseInt(match[0], 10) : 999;
+            const match = seriesOrder.match(/(\d+(\.\d+)?)/);
+            return match ? parseFloat(match[0]) : 999;
         }
 
         // Interactive List View Header Sort Trigger
@@ -888,7 +936,7 @@
             }
 
             currentSort = nextSort;
-            // Keep main controls drop-down matching perfectly in sync
+            // Keep main controls dropdown perfectly in sync
             document.getElementById('sort-select').value = currentSort;
             render();
         }
@@ -965,7 +1013,6 @@
                 renderFlat(data, gridContainer, listBody);
             }
 
-            // Always update standard vector icons generated dynamically and active headers
             updateSortIcons();
         }
 
@@ -1000,7 +1047,7 @@
                 }
             });
 
-            // Sort books in each series group by their series Order chronological value
+            // Sort books in each series group chronologically based on parsed volume float
             for (const sName in seriesGroups) {
                 seriesGroups[sName].sort((a, b) => {
                     const aNum = getSeriesNumber(a.seriesOrder);
@@ -1015,11 +1062,11 @@
             if (currentLayout === 'grid') {
                 gridContainer.innerHTML = '';
 
-                // Render groups in grid layout
+                // Render series groups in grid layout
                 sortedSeriesNames.forEach(sName => {
                     const books = seriesGroups[sName];
 
-                    // Series Header Row spanning all columns natively
+                    // Series Header Row spanning all grid columns
                     const headerDiv = document.createElement('div');
                     headerDiv.className = "col-span-full border-b border-slate-800 pb-1.5 mt-6 mb-2 flex justify-between items-end";
                     headerDiv.innerHTML = `
@@ -1036,7 +1083,7 @@
                     });
                 });
 
-                // Standalones Section
+                // Standalones Section rendered at the bottom
                 if (standalones.length > 0) {
                     const headerDiv = document.createElement('div');
                     headerDiv.className = "col-span-full border-b border-slate-800 pb-1.5 mt-8 mb-2 flex justify-between items-end";
@@ -1097,7 +1144,7 @@
             }
         }
 
-        // Creates compact tactile cover grid card (Dynamically expanding, min-height 195px, covers min-h-[120px])
+        // Creates compact grid card (container limits min-h-[195px] h-auto)
         function createCompactGridCard(book) {
             const card = document.createElement('div');
             card.className = "group bg-slate-900/60 border border-slate-800/80 rounded-lg hover:border-slate-700/80 hover:bg-slate-900 transition-all duration-300 shadow-md flex flex-col justify-between overflow-hidden cursor-pointer min-h-[195px] h-auto";
@@ -1109,10 +1156,9 @@
             const hoursLabel = hours > 0 ? `${hours}h ` : '';
             const lengthStr = `${hoursLabel}${mins}m`;
 
-            // Extract Series Volume Number cleanly
+            // Extract volume numbers cleanly
             const volNum = book.seriesOrder ? book.seriesOrder.split(':')[0].trim() : '#';
 
-            // Support dynamic local cover image configurations
             let coverStyle = '';
             const hasImage = !!book.backgroundImage;
 
@@ -1124,47 +1170,43 @@
                 coverStyle = `background-image: url('${imgPath}'); background-size: cover; background-position: center;`;
             }
 
-            // Conditional overlay style based on image presence
             const overlayClass = hasImage
                 ? "absolute inset-0 bg-slate-950/45 group-hover:bg-slate-950/20 transition-colors"
                 : "absolute inset-0 bg-slate-950/10 group-hover:bg-slate-950/0 transition-colors";
 
-            // High-contrast glassmorphic capsule class for category tags (Supports full flex width before truncation)
+            // Tooltipped glassmorphic category badges
             const catBadgeClass = "text-[8px] font-extrabold text-white bg-white/20 border border-white/20 px-1.5 py-0.5 rounded backdrop-blur-sm tracking-wider uppercase truncate max-w-full cursor-help";
 
-            // Conditional background capsule classes for series badge based on image presence
+            // Translucent capsule labels to ensure cover text readability over background images
             const seriesBadgeClass = hasImage
                 ? "inline-block text-[13px] font-bold text-white bg-slate-950/80 border border-white/10 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full"
                 : "inline-block text-[13px] font-bold text-white/95 bg-brand-500/50 px-1.5 py-0.5 rounded shadow-sm tracking-tight truncate max-w-full";
 
-            // Map all categories inside standard high-contrast glassmorphic tags with dynamic title attributes as tooltips
             const categoriesHtml = book.categories
                 ? book.categories.split(';').map(c => `<span class="${catBadgeClass}" title="${c.trim()}">${c.trim()}</span>`).join(' ')
                 : `<span class="${catBadgeClass}">STORY</span>`;
 
             card.innerHTML = `
-                <!-- Dynamic gradient or image cover block (min-h-[120px] dynamically expanding) -->
+                <!-- Dynamic Cover container (min-h-[120px] h-auto) -->
                 <div class="min-h-[120px] h-auto bg-gradient-to-br ${style.gradient} relative p-2.5 flex flex-col justify-between shrink-0" style="${coverStyle}">
-                    <!-- Dark translucent overlay to guarantee typography and icon readability -->
                     <div class="${overlayClass}"></div>
                     <div class="absolute -right-6 -bottom-6 w-16 h-16 bg-white/5 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500"></div>
 
-                    <!-- Categories Row with absolute wrapping and uniform separation space -->
+                    <!-- Genre Category wrapping pills -->
                     <div class="flex justify-between items-start z-10 w-full gap-2 mb-3">
                         <div class="flex flex-wrap gap-1.5 max-w-[85%]">
                             ${categoriesHtml}
                         </div>
-                        <!-- Light white icon with drop shadow -->
                         <i data-lucide="${style.icon}" class="w-3.5 h-3.5 text-white drop-shadow-md shrink-0 mt-0.5"></i>
                     </div>
 
-                    <!-- Series details with light, high-contrast Slate Capsule -->
+                    <!-- Volume details directly over the banner gradient/cover image -->
                     <div class="z-10 text-left w-full mt-auto">
                         ${book.series ? `<span class="${seriesBadgeClass}">${book.series}</span> <span class="${seriesBadgeClass}">Vol. ${volNum}</span>` : ''}
                     </div>
                 </div>
 
-                <!-- Consolidated details metadata (flat design, no border separator) -->
+                <!-- Bottom content details (No border line dividing text and bottom stats row) -->
                 <div class="p-2.5 flex-1 flex flex-col justify-between bg-slate-900/40">
                     <div class="space-y-0.5">
                         <h3 class="text-sm font-bold text-slate-100 group-hover:text-brand-500 transition-colors leading-tight line-clamp-1" title="${book.title}">
@@ -1173,7 +1215,7 @@
                         <p class="text-xs text-slate-400 font-medium truncate">By ${book.authors}</p>
                     </div>
 
-                    <!-- Bottom statistics details (enhanced font sizes and icons) -->
+                    <!-- Flat stats row -->
                     <div class="flex items-center justify-between pt-1.5">
                         <span class="inline-flex items-center gap-1 text-[11px] text-slate-400">
                             <i data-lucide="clock" class="w-3 h-3 text-slate-500"></i>
@@ -1227,12 +1269,12 @@
             return row;
         }
 
-        // Cinematic Modal Control Functions (Removed Category Badge Overlay)
+        // Cinematic Modal Control Functions (Visualizer has NO text overlay pills)
         function openModal(book) {
             const modal = document.getElementById('detail-modal');
             const card = document.getElementById('modal-card');
 
-            // Set Cover colors, symbols, and optional background cover image inside modal
+            // Set Cover gradient / cover image
             const style = getCategoryStyle(book.categories);
             const coverArt = document.getElementById('modal-cover-art');
             coverArt.className = `w-32 h-32 md:w-40 md:h-40 rounded-xl flex flex-col justify-between p-3.5 shrink-0 shadow-lg text-slate-950 bg-gradient-to-br ${style.gradient} relative overflow-hidden`;
@@ -1247,7 +1289,7 @@
             }
             coverArt.style = coverImgStyle;
 
-            // Render modal cover art visualizer without category overlays
+            // Cover Visualizer left panel renders ONLY the visual art/icons (All text overlay pills removed from left)
             coverArt.innerHTML = `
                 <div class="absolute inset-0 bg-slate-950/20"></div>
                 <div class="z-10 flex flex-col justify-start h-full w-full">
@@ -1272,7 +1314,7 @@
             document.getElementById('modal-publisher').textContent = book.publisher || 'N/A';
             document.getElementById('modal-published-date').textContent = book.datePublished || 'N/A';
 
-            // Render Categories Pills dynamically inside the detail modal
+            // Render Categories Pills dynamically inside modal's info block on right
             const modalCatsList = document.getElementById('modal-categories-list');
             modalCatsList.innerHTML = '';
             if (book.categories) {
@@ -1280,7 +1322,7 @@
                     const pill = document.createElement('span');
                     pill.className = "text-[9px] font-bold text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded-full tracking-wide cursor-help";
                     pill.textContent = c.trim();
-                    pill.title = c.trim(); // Add tooltip to modal pills too just in case
+                    pill.title = c.trim();
                     modalCatsList.appendChild(pill);
                 });
             }
@@ -1311,7 +1353,7 @@
             const mins = (book.length || 0) % 60;
             document.getElementById('modal-duration').textContent = `${hours}h ${mins}m`;
 
-            // Individual Sub-Ratings & Overall
+            // 4-Column rating breakdown cards
             document.getElementById('modal-rating-overall').textContent = book.ratingOverall ? book.ratingOverall.toFixed(2) : '--';
             document.getElementById('modal-rating-story').textContent = book.ratingStory ? book.ratingStory.toFixed(2) : '--';
             document.getElementById('modal-rating-perf').textContent = book.ratingPerformance ? book.ratingPerformance.toFixed(2) : '--';
@@ -1319,7 +1361,7 @@
             // Description raw content
             document.getElementById('modal-description').innerHTML = book.description || '<p class="text-slate-500 italic">No publisher synopsis available.</p>';
 
-            // Show animation triggers
+            // Show details drawer
             modal.classList.remove('pointer-events-none');
             modal.classList.add('opacity-100');
             card.classList.remove('scale-95');
@@ -1338,7 +1380,7 @@
             card.classList.remove('scale-100');
         }
 
-        // Close modal if user clicks outside of target container card
+        // Close modal if user clicks outside of target card
         document.getElementById('detail-modal').addEventListener('click', (e) => {
             if (e.target === document.getElementById('detail-modal')) {
                 closeModal();
@@ -1357,14 +1399,13 @@
                 filePath = 'bookFiles/' + filePath;
             }
 
-            // If it's a new track, load and start playing
             if (currentPlayingBook !== book) {
                 currentPlayingBook = book;
                 activeAudio.src = filePath;
                 playerTitle.textContent = book.title;
                 playerAuthor.textContent = book.authors;
 
-                // Style player cover with match category color
+                // Match floating player visualizer thumbnail with category gradient & icon
                 const style = getCategoryStyle(book.categories);
                 const playerCover = document.getElementById('player-cover');
                 playerCover.className = `w-10 h-10 rounded-lg bg-gradient-to-br ${style.gradient} shrink-0 flex items-center justify-center text-slate-950 font-bold text-xs shadow-md`;
@@ -1373,7 +1414,7 @@
                 lucide.createIcons();
             }
 
-            // Toggle active play state
+            // Toggle play state
             if (activeAudio.paused) {
                 activeAudio.play().then(() => {
                     playIcon.setAttribute('data-lucide', 'pause');
