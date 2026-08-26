@@ -43,7 +43,7 @@
             <input id="folder-input" type="file" webkitdirectory directory multiple accept="audio/mpeg,.mp3" aria-label="Choose an MP3 folder" class="hidden">
             <i data-lucide="folder-open" class="w-10 h-10 text-brand-500 mx-auto mb-4"></i>
             <h3 class="text-lg font-semibold text-white">Select an MP3 folder</h3>
-            <p class="text-sm text-slate-400 mt-2">Subfolders are included automatically.</p>
+            <p class="text-sm text-slate-400 mt-2">Subfolders and JSON sidecar metadata are included automatically.</p>
             <button id="choose-folder-btn" class="mt-5 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-500 hover:bg-brand-400 text-slate-950 font-semibold text-sm transition-colors"><i data-lucide="folder-search" class="w-4 h-4"></i> Choose folder</button>
             <p id="drop-status" class="mono text-[11px] text-slate-500 mt-4">No folder selected</p>
         </section>
@@ -56,7 +56,7 @@
             <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/60">
                 <table class="w-full text-left text-xs"><thead class="bg-slate-900 text-slate-500 uppercase tracking-wider"><tr><th class="p-3">Title</th><th class="p-3">Author</th><th class="p-3">Album / Series</th><th class="p-3">Duration</th><th class="p-3">Status</th></tr></thead><tbody id="results-body" class="divide-y divide-slate-800"></tbody></table>
             </div>
-            <p class="text-[11px] text-slate-500 mt-3">Generated records use a 0 rating, the MP3 year as <span class="mono">datePublished</span>, and the folder-relative path as <span class="mono">bookFile</span>.</p>
+            <p id="metadata-summary" class="text-[11px] text-slate-500 mt-3"></p>
         </section>
     </main>
     <script src="js/generator.js"></script>

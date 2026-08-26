@@ -1,10 +1,13 @@
 # BookLibrary
+
 This is a work-in-progress application to display my list of audiobooks.
 
 This project started as a simple request to Gemini to help me extract part of an Excel spreadsheet into a .json file. I didn't give it any further directions/limitations, and it built me an entire web application for managing my list of Audiobooks. So that got me thinking...
 
 ## Building a library JSON file
 
-Open [generator.html](generator.html) in a browser and choose the folder containing your MP3 files. The tool reads ID3 metadata and audio duration locally, then downloads a `library.json` file compatible with the dashboard. Each MP3 becomes one record, and its folder-relative path is stored in `bookFile`.
+Open [generator.html](generator.html) in a browser and choose the folder containing your MP3 files. The tool reads ID3 metadata and audio duration locally, then downloads a `library.json` file compatible with the dashboard. Each MP3 becomes one record, and its folder-relative path is stored in `bookFile`. JSON files in the selected folder are read automatically.
+
+JSON metadata can be a sidecar object such as `Book Name.json` beside `Book Name.mp3`, a metadata object anywhere in the same audiobook folder, or an array / `{ "books": [] }` collection with records matched by `title`, `bookFile`, `file`, or `filename`. A matching JSON value takes precedence over the corresponding MP3 tag; missing JSON fields keep the MP3-derived value.
 
 The browser cannot reliably determine audiobook ratings or narrator names from MP3 metadata. Those fields default to empty or zero values and can be edited in the generated JSON when needed.

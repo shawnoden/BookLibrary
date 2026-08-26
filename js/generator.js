@@ -7,6 +7,7 @@
     const resultsBody = document.getElementById('results-body');
     const fileCount = document.getElementById('file-count');
     const downloadButton = document.getElementById('download-btn');
+    const metadataSummary = document.getElementById('metadata-summary');
     let records = [];
 
     lucide.createIcons();
@@ -26,6 +27,7 @@
 
     async function processFiles(files) {
         const mp3Files = files.filter(file => file.name.toLowerCase().endsWith('.mp3'));
+        const jsonFiles = files.filter(file => file.name.toLowerCase().endsWith('.json'));
         if (!mp3Files.length) {
             status.textContent = 'No MP3 files found in that selection';
             return;
@@ -34,15 +36,32 @@
         resultsBody.innerHTML = '';
         resultsPanel.classList.remove('hidden');
         downloadButton.disabled = true;
-        status.textContent = `Reading ${mp3Files.length} MP3 file${mp3Files.length === 1 ? '' : 's'}...`;
+        const metadataFiles = await readMetadataFiles(jsonFiles);
+        status.textContent = `Reading ${mp3Files.length} MP3 file${mp3Files.length === 1 ? '' : 's'}${jsonFiles.length ? ` and ${jsonFiles.length} JSON file${jsonFiles.length === 1 ? '' : 's'}` : ''}...`;
         for (const file of mp3Files) {
-            const result = await readFileRecord(file);
+            const result = await readFileRecord(file, metadataFiles);
             records.push(result.record);
             renderRow(result.record, result.error);
         }
         fileCount.textContent = records.length;
         downloadButton.disabled = records.length === 0;
         status.textContent = `Finished: ${records.length} record${records.length === 1 ? '' : 's'} ready`;
+        const matchedMetadata = records.filter(record => record._metadataMatched).length;
+        records.forEach(record => delete record._metadataMatched);
+        metadataSummary.textContent = `${matchedMetadata} record${matchedMetadata === 1 ? '' : 's'} enriched from adjacent JSON. Ratings default to 0 when unavailable.`;
+    }
+
+    async function readMetadataFiles(files) {
+        const metadata = [];
+        for (const file of files) {
+            try {
+                const value = JSON.parse(await file.text());
+                metadata.push({ file, value });
+            } catch (error) {
+                metadata.push({ file, value: null, error: 'invalid JSON' });
+            }
+        }
+        return metadata;
     }
 
     function readTags(file) {
@@ -65,15 +84,15 @@
         });
     }
 
-    async function readFileRecord(file) {
+    async function readFileRecord(file, metadataFiles) {
         const [{ tags, error }, duration] = await Promise.all([readTags(file), getDuration(file)]);
+        const sidecar = findMetadata(file, metadataFiles);
         const title = textValue(tags.title) || file.name.replace(/\.mp3$/i, '');
         const author = textValue(tags.albumartist) || textValue(tags.artist);
         const narrator = textValue(tags.narrator) || textValue(tags.albumartist) || '';
         const year = textValue(tags.year).slice(0, 10);
         const relativePath = file.webkitRelativePath || file.name;
-        return {
-            record: {
+        const record = {
                 title,
                 subtitle: '',
                 authors: author,
@@ -89,9 +108,73 @@
                 datePublished: year,
                 categories: textValue(tags.genre),
                 bookFile: relativePath
-            },
-            error
         };
+        if (sidecar) {
+            mergeMetadata(record, sidecar);
+            record._metadataMatched = true;
+        }
+        return { record, error: error && !sidecar ? error : '' };
+    }
+
+    function findMetadata(audioFile, metadataFiles) {
+        const audioPath = normalizePath(audioFile.webkitRelativePath || audioFile.name);
+        const audioDirectory = audioPath.includes('/') ? audioPath.slice(0, audioPath.lastIndexOf('/')) : '';
+        const audioBase = audioFile.name.replace(/\.mp3$/i, '').toLowerCase();
+        const candidates = metadataFiles.filter(item => item.value && typeof item.value === 'object');
+        const exactSidecar = candidates.find(item => {
+            const jsonPath = normalizePath(item.file.webkitRelativePath || item.file.name);
+            return jsonPath.slice(0, jsonPath.lastIndexOf('/')) === audioDirectory && item.file.name.replace(/\.json$/i, '').toLowerCase() === audioBase;
+        });
+        if (exactSidecar) {
+            return selectMetadataRecord(exactSidecar.value, audioFile) || (isMetadataObject(exactSidecar.value) ? exactSidecar.value : null);
+        }
+
+        const matchingRecord = candidates.map(item => selectMetadataRecord(item.value, audioFile)).find(Boolean);
+        if (matchingRecord) return matchingRecord;
+
+        const directoryMetadata = candidates.find(item => {
+            const jsonPath = normalizePath(item.file.webkitRelativePath || item.file.name);
+            return jsonPath.slice(0, jsonPath.lastIndexOf('/')) === audioDirectory && isMetadataObject(item.value);
+        });
+        return directoryMetadata ? directoryMetadata.value : null;
+    }
+
+    function isMetadataObject(value) {
+        return value && typeof value === 'object' && !Array.isArray(value) && !Array.isArray(value.books);
+    }
+
+    function selectMetadataRecord(value, audioFile) {
+        const recordsToCheck = Array.isArray(value) ? value : Array.isArray(value.books) ? value.books : [];
+        const audioName = audioFile.name.toLowerCase();
+        return recordsToCheck.find(item => {
+            if (!item || typeof item !== 'object') return false;
+            const fileName = textValue(item.bookFile || item.file || item.filename || item.fileName).toLowerCase();
+            const title = textValue(item.title).toLowerCase();
+            return fileName.endsWith(audioName) || title === audioFile.name.replace(/\.mp3$/i, '').toLowerCase();
+        }) || null;
+    }
+
+    function mergeMetadata(record, metadata) {
+        const aliases = {
+            author: 'authors', artist: 'authors', albumArtist: 'authors', narrator: 'narrators',
+            genre: 'categories', album: 'series', track: 'seriesOrder', year: 'datePublished',
+            duration: 'length', file: 'bookFile'
+        };
+        Object.entries(metadata).forEach(([key, value]) => {
+            const target = aliases[key] || key;
+            if (!(target in record) || value === null || value === undefined || value === '') return;
+            record[target] = target === 'length' ? durationInMinutes(value, record.length) : textValue(value);
+        });
+    }
+
+    function durationInMinutes(value, fallback) {
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue) || numericValue <= 0) return fallback;
+        return numericValue > 100 ? Math.round(numericValue / 60) : Math.round(numericValue);
+    }
+
+    function normalizePath(value) {
+        return String(value).replace(/\\/g, '/').replace(/^\.\//, '').toLowerCase();
     }
 
     function textValue(value) {
