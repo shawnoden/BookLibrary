@@ -250,6 +250,7 @@ window.AudiobookApp.main = {
     attemptAutoFetch: function() {
         const state = window.AudiobookApp.state;
         const ui = window.AudiobookApp.ui;
+        const utils = window.AudiobookApp.utils;
 
         const loadingState = document.getElementById('loading-state');
         const errorState = document.getElementById('error-state');
