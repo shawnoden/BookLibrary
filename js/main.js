@@ -261,7 +261,7 @@ window.AudiobookApp.main = {
             })
             .then(data => {
                 loadingState.classList.add('hidden');
-                state.libraryData = data;
+                state.libraryData = utils.normalizeLibraryData(data);
 
                 // Unhide the dashboard UI elements
                 document.getElementById('dashboard-content').classList.remove('hidden');
