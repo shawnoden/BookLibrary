@@ -177,6 +177,7 @@
         const record = {
                 title,
                 subtitle: '',
+                bookId: [{ asin: '' }, { audiobookId: '' }, { isbn: '' }],
                 authors: author,
                 narrators: narrator,
                 length: Math.round(durationSeconds / 60),
@@ -271,6 +272,18 @@
 
     function mergeMetadata(record, metadata) {
         metadata = normalizeMetadata(metadata);
+        if (Array.isArray(metadata.bookId)) record.bookId = metadata.bookId;
+        if (metadata.durationSeconds !== undefined) {
+            const seconds = Number(metadata.durationSeconds);
+            if (Number.isFinite(seconds) && seconds >= 0) {
+                record._durationSeconds = seconds;
+                record.length = Math.round(seconds / 60);
+            }
+        }
+        if (metadata.runtime_length_min !== undefined) {
+            const minutes = Number(metadata.runtime_length_min);
+            if (Number.isFinite(minutes) && minutes > 0) record._durationSeconds = Math.round(minutes * 60);
+        }
         const aliases = {
             author: 'authors', artist: 'authors', albumArtist: 'authors', narrator: 'narrators',
             genre: 'categories', album: 'series', track: 'seriesOrder', year: 'datePublished',

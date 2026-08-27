@@ -325,10 +325,8 @@ window.AudiobookApp.main = {
         const playerAuthor = document.getElementById('player-author');
         const playBtn = document.getElementById('player-play-btn');
 
-        let filePath = book.bookFile;
-        if (!filePath.startsWith('bookFiles/') && !filePath.startsWith('http://') && !filePath.startsWith('https://') && !filePath.startsWith('./')) {
-            filePath = 'bookFiles/' + filePath;
-        }
+        const filePath = utils.resolveAudioPath(book, book.bookFile);
+        if (!filePath) return;
 
         if (state.currentPlayingBook !== book) {
             state.currentPlayingBook = book;
@@ -356,7 +354,7 @@ window.AudiobookApp.main = {
                 .then(updatePlayIconUI)
                 .catch(err => {
                     console.error("Playback interrupted:", err);
-                    alert("Unable to play audiobook file. Please confirm the file exists inside your 'bookFiles/' directory path.");
+                    alert("Unable to play audiobook file. Please confirm the file exists inside your 'bookAssets/' directory path.");
                 });
         } else {
             this.activeAudio.pause();

@@ -16,8 +16,7 @@ js/
   ui.js
   utils.js
   generator.js
-backgroundImage/
-bookFiles/
+bookAssets/
 README.md
 ```
 
@@ -180,8 +179,8 @@ Implement a persistent floating player using one HTML5 `<audio>` element:
 Resolve audio paths as follows:
 
 - Preserve absolute `http://`, `https://`, and `./` URLs.
-- Preserve paths already beginning with `bookFiles/`.
-- Prefix other local paths with `bookFiles/`.
+- Preserve paths already beginning with `bookAssets/`.
+- Prefix other local paths with `bookAssets/`.
 - Do not permit arbitrary unsafe URLs.
 
 ## JavaScript Modules

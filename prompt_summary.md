@@ -29,8 +29,7 @@ js/
   ui.js
   utils.js
   generator.js
-backgroundImage/
-bookFiles/
+bookAssets/
 ```
 
 The dashboard loads `state.js`, `utils.js`, `ui.js`, then `main.js`. The JSON Builder loads `generator.js` after its markup and loads `jsmediatags`.
@@ -82,8 +81,8 @@ Use one persistent floating HTML5 `<audio>` element. Provide play/pause, rewind 
 Persist playback progress as a rounded percentage and automatically mark a book listened at 100 percent. Stop and hide the player when closed. Resolve audio paths as follows:
 
 - Preserve `http://`, `https://`, and `./` URLs.
-- Preserve paths beginning with `bookFiles/`.
-- Prefix other local paths with `bookFiles/`.
+- Preserve paths beginning with `bookAssets/`.
+- Prefix other local paths with `bookAssets/`.
 - Reject unsafe protocols and arbitrary URLs.
 
 ## JavaScript Responsibilities

@@ -26,7 +26,7 @@ window.AudiobookApp.utils = {
         if (!book) return '';
         const identifiers = Array.isArray(book.bookId) ? book.bookId : [];
         const structuredId = identifiers.find(identifier => identifier && typeof identifier === 'object' && Object.values(identifier)[0]);
-        const rawId = book.asin || book.id || (structuredId && Object.values(structuredId)[0]) || `${book.title}-${this.peopleValue(book.authors)}`;
+        const rawId = book.asin || book.id || (structuredId && Object.values(structuredId)[0]) || book.bookFile || `${book.title}-${this.peopleValue(book.authors)}`;
         return String(rawId).replace(/[^a-zA-Z0-9-_]/g, '_');
     },
 
@@ -62,6 +62,25 @@ window.AudiobookApp.utils = {
     listValue: function(value) {
         if (Array.isArray(value)) return value.map(item => String(item || '').trim()).filter(Boolean).join('; ');
         return String(value || '');
+    },
+
+    resolveAssetPath: function(book, value) {
+        const path = String(value || '').trim();
+        if (!path) return '';
+        if (/(^|\/)\.\.(\/|$)|["'()\\\r\n]/.test(path)) return '';
+        if (/^data:image\/(?:png|jpe?g|gif|webp|avif|svg\+xml);base64,[A-Za-z0-9+/]+={0,2}$/i.test(path)) return path;
+        if (/^https?:\/\//i.test(path) || path.startsWith('./') || path.startsWith('bookAssets/')) return path;
+        const author = this.peopleValue(book && book.authors).split(',')[0].trim();
+        const series = String(book && book.series || '').trim();
+        const title = String(book && book.title || '').trim();
+        if (path.includes('/')) return `bookAssets/${path}`;
+        const folder = author ? `${author}/${series ? `${series}/` : ''}${title}/` : '';
+        return `bookAssets/${folder}${path}`;
+    },
+
+    resolveAudioPath: function(book, value) {
+        const path = this.resolveAssetPath(book, value);
+        return path && !path.startsWith('data:image/') ? path : '';
     },
 
     /**
