@@ -260,11 +260,13 @@ Use an array of records. A normal record should look like:
 
 ```json
 {
+  "bookId": [{ "asin": "B000000000" }, { "audiobookId": "" }, { "isbn": "" }],
     "title": "Book title",
     "subtitle": "Optional subtitle",
-    "authors": "Author Name",
-    "narrators": "Narrator Name",
-    "length": 600,
+  "authors": ["Author Name"],
+  "narrators": ["Narrator Name"],
+  "durationSeconds": 36000,
+  "durationText": "10h 0m 0s",
     "description": "<p>Publisher description</p>",
     "publisher": "Publisher Name",
     "series": "Series Name",
@@ -273,14 +275,13 @@ Use an array of records. A normal record should look like:
     "ratingPerformance": 4.6,
     "ratingStory": 4.4,
     "datePublished": "2024-01-01",
-    "categories": "Adventure; Science Fiction",
+    "categories": ["Adventure", "Science Fiction"],
     "bookFile": "Series Name/Book.mp3",
-    "asin": "B000000000",
     "backgroundImage": "Series Name/Book.jpg"
 }
 ```
 
-`length` is always minutes. `ratingOverall`, `ratingPerformance`, and `ratingStory` are numeric values from 0 to 5. `asin` and `backgroundImage` are optional.
+  `authors`, `narrators`, and `categories` are arrays. `durationSeconds` is canonical and `durationText` is its readable representation. `bookId` is an array of identifier objects containing `asin`, `audiobookId`, and `isbn`; individual values may be empty. Ratings may be `null`, and `backgroundImage` or `bookFile` may be empty. The dashboard may normalize these values into internal display fields such as comma-separated people, semicolon-separated categories, and rounded minute values.
 
 ## Generator page: generator.html
 
@@ -288,11 +289,12 @@ Create a second page called "Library JSON Builder" with:
 
 - Link back to `index.html`.
 - Folder picker using `webkitdirectory`, `directory`, and `multiple`.
+- Native File System Access directory picker when available, with recursive directory-handle traversal.
 - Drag-and-drop support for selected files.
 - Local-only messaging: files are read in the browser and never uploaded.
-- Selection of all MP3 files recursively.
-- Selection of JSON files recursively.
-- Selection of local image files recursively.
+- Selection of all MP3, JSON, and local image files recursively through every nested folder.
+- Preservation of selected-folder-relative paths for matching and export.
+- Firefox fallback messaging when a directory picker does not provide relative paths; support folder drag-and-drop or individual-file selection.
 - Results table showing title, author, series, duration, and metadata status.
 - Count of generated records.
 - Count of records enriched from JSON.
@@ -307,10 +309,10 @@ For each MP3:
 - Use title tag or filename without `.mp3` as title.
 - Use album artist or artist as author.
 - Use narrator tag or a reasonable fallback.
-- Use album as series fallback.
+- Use album as series fallback only when it is a meaningful series value; ignore media URLs and Audible marker strings such as `|adbl|`.
 - Use track as series order fallback.
 - Use genre as category fallback.
-- Measure duration with an `<audio>` element and convert seconds to rounded minutes.
+- Measure duration with an `<audio>` element, retain exact `durationSeconds`, and derive rounded minutes only for internal display.
 - Preserve the selected-folder-relative MP3 path as `bookFile`.
 - Continue when tags or duration cannot be read, using safe defaults.
 
@@ -327,6 +329,8 @@ Read JSON files from the selected folder automatically. Support:
 Match collection records by exact normalized relative path or exact unambiguous filename/title. Never use a loose suffix match that can confuse `Book.mp3` with `LongBook.mp3`. Reject ambiguous duplicate title matches rather than selecting an arbitrary record. Exact sidecars take priority.
 
 Missing fields in JSON must preserve MP3-derived values. Invalid JSON must be reported without stopping the whole generation.
+
+Export the current schema with structured `bookId`, people/category arrays, `durationSeconds`, `durationText`, and optional empty file/image fields.
 
 ### Audible metadata mapping
 
@@ -366,6 +370,8 @@ Map:
 - The preferred Audible product image to `backgroundImage` only when no local image is available.
 
 Never search nested reviews, relationships, chapters, content references, or related products for an ASIN. Only use the top-level ASIN belonging to the matched audiobook metadata object.
+
+Do not treat Audible media-description album values, URLs, or `|adbl|` markers as a series name. Explicit series fields take precedence over an MP3 album fallback.
 
 ### Local image priority
 
@@ -413,12 +419,13 @@ Before finishing, verify:
 7. Modal metadata and sanitized descriptions render correctly.
 8. A local MP3 can play, pause, seek, rewind, skip, and persist progress.
 9. `generator.html` can recursively process MP3, JSON, and image files.
-10. The supplied Audible metadata produces the correct author, narrator, publisher, ratings, ASIN, description, categories, and approximately `2564` minutes.
+10. The supplied Audible metadata produces the correct author, narrator, publisher, ratings, ASIN, description, categories, and approximately `2564` minutes internally.
 11. `Book.metadata.json` matches `Book.mp3`.
 12. Local cover art overrides a remote Audible cover URL.
 13. Invalid JSON is reported but does not stop valid records.
 14. Malicious metadata is displayed as text and cannot inject markup or scripts.
-15. Run JavaScript syntax checks and editor/linter diagnostics on every JS and HTML file.
-16. Run a whitespace or patch-integrity check before finishing.
+15. The dashboard loads the current array-based schema without a normalization error.
+16. Run JavaScript syntax checks and editor/linter diagnostics on every JS and HTML file.
+17. Run a whitespace or patch-integrity check before finishing.
 
 Do not stop at a design mockup. Implement the complete working application and all listed behavior.
