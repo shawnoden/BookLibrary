@@ -24,8 +24,44 @@ window.AudiobookApp.utils = {
      */
     getBookId: function(book) {
         if (!book) return '';
-        const rawId = book.asin || book.id || `${book.title}-${book.authors}`;
-        return rawId.replace(/[^a-zA-Z0-9-_]/g, '_');
+        const identifiers = Array.isArray(book.bookId) ? book.bookId : [];
+        const structuredId = identifiers.find(identifier => identifier && typeof identifier === 'object' && Object.values(identifier)[0]);
+        const rawId = book.asin || book.id || (structuredId && Object.values(structuredId)[0]) || `${book.title}-${this.peopleValue(book.authors)}`;
+        return String(rawId).replace(/[^a-zA-Z0-9-_]/g, '_');
+    },
+
+    normalizeLibraryData: function(data) {
+        return Array.isArray(data) ? data.map(book => this.normalizeBook(book)).filter(Boolean) : [];
+    },
+
+    normalizeBook: function(book) {
+        if (!book || typeof book !== 'object') return null;
+        const authors = this.peopleValue(book.authors);
+        const narrators = this.peopleValue(book.narrators);
+        const categories = this.listValue(book.categories);
+        const durationSeconds = Number(book.durationSeconds);
+        const length = Number.isFinite(durationSeconds) && durationSeconds >= 0
+            ? Math.round(durationSeconds / 60)
+            : Number(book.length) || 0;
+        return {
+            ...book,
+            authors,
+            narrators,
+            categories,
+            length,
+            durationSeconds: Number.isFinite(durationSeconds) ? durationSeconds : length * 60,
+            durationText: book.durationText || this.formatTime(length * 60)
+        };
+    },
+
+    peopleValue: function(value) {
+        if (!Array.isArray(value)) return String(value || '');
+        return value.map(person => person && typeof person === 'object' ? person.name : person).filter(Boolean).join(', ');
+    },
+
+    listValue: function(value) {
+        if (Array.isArray(value)) return value.map(item => String(item || '').trim()).filter(Boolean).join('; ');
+        return String(value || '');
     },
 
     /**

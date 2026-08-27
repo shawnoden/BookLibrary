@@ -128,11 +128,13 @@ Use an array of records with this shape:
 
 ```json
 {
+  "bookId": [{ "asin": "B000000000" }, { "audiobookId": "" }, { "isbn": "" }],
   "title": "Book title",
   "subtitle": "Optional subtitle",
-  "authors": "Author Name",
-  "narrators": "Narrator Name",
-  "length": 600,
+  "authors": ["Author Name"],
+  "narrators": ["Narrator Name"],
+  "durationSeconds": 36000,
+  "durationText": "10h 0m 0s",
   "description": "<p>Publisher description</p>",
   "publisher": "Publisher Name",
   "series": "Series Name",
@@ -141,14 +143,13 @@ Use an array of records with this shape:
   "ratingPerformance": 4.6,
   "ratingStory": 4.4,
   "datePublished": "2024-01-01",
-  "categories": "Adventure; Science Fiction",
+  "categories": ["Adventure", "Science Fiction"],
   "bookFile": "Series Name/Book.mp3",
-  "asin": "B000000000",
   "backgroundImage": "Series Name/Book.jpg"
 }
 ```
 
-`length` is always minutes. Ratings are numeric values from 0 to 5. `asin` and `backgroundImage` are optional.
+`authors`, `narrators`, and `categories` are arrays. `durationSeconds` is the canonical duration and `durationText` is its readable representation. `bookId` is an array of identifier objects; its values may be empty. Ratings may be `null`, and `backgroundImage` or `bookFile` may be empty.
 
 ## JSON Builder: `generator.html`
 

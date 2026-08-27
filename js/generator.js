@@ -160,14 +160,14 @@
             const audio = document.createElement('audio');
             const url = URL.createObjectURL(file);
             audio.preload = 'metadata';
-            audio.onloadedmetadata = () => { URL.revokeObjectURL(url); resolve(Math.round((audio.duration || 0) / 60)); };
+            audio.onloadedmetadata = () => { URL.revokeObjectURL(url); resolve(Math.round(audio.duration || 0)); };
             audio.onerror = () => { URL.revokeObjectURL(url); resolve(0); };
             audio.src = url;
         });
     }
 
     async function readFileRecord(file, metadataFiles, imageFiles, audioFiles) {
-        const [{ tags, error }, duration] = await Promise.all([readTags(file), getDuration(file)]);
+        const [{ tags, error }, durationSeconds] = await Promise.all([readTags(file), getDuration(file)]);
         const sidecar = findMetadata(file, metadataFiles, audioFiles);
         const title = textValue(tags.title) || file.name.replace(/\.mp3$/i, '');
         const author = textValue(tags.albumartist) || textValue(tags.artist);
@@ -179,7 +179,8 @@
                 subtitle: '',
                 authors: author,
                 narrators: narrator,
-                length: duration,
+                length: Math.round(durationSeconds / 60),
+                _durationSeconds: durationSeconds,
                 description: textValue(tags.comment),
                 publisher: textValue(tags.publisher),
                 series: seriesValue(tags.album),
@@ -385,12 +386,48 @@
     }
 
     function downloadJson() {
-        const blob = new Blob([JSON.stringify(records, null, 4)], { type: 'application/json' });
+        const exportRecords = records.map(toLibrarySchemaRecord);
+        const blob = new Blob([JSON.stringify(exportRecords, null, 4)], { type: 'application/json' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = 'library.json';
         link.click();
         URL.revokeObjectURL(link.href);
+    }
+
+    function toLibrarySchemaRecord(record) {
+        const authors = record.authors ? record.authors.split(',').map(value => value.trim()).filter(Boolean) : [];
+        const narrators = record.narrators ? record.narrators.split(',').map(value => value.trim()).filter(Boolean) : [];
+        const categories = record.categories ? record.categories.split(';').map(value => value.trim()).filter(Boolean) : [];
+        const durationSeconds = Math.max(0, Math.round(Number(record._durationSeconds) || Number(record.length) * 60 || 0));
+        return {
+            bookId: record.bookId || (record.asin ? [{ asin: record.asin }, { audiobookId: '' }, { isbn: '' }] : [{ asin: '' }, { audiobookId: '' }, { isbn: '' }]),
+            title: record.title,
+            subtitle: record.subtitle || '',
+            authors,
+            narrators,
+            durationSeconds,
+            durationText: formatDurationText(durationSeconds),
+            description: record.description || '',
+            publisher: record.publisher || '',
+            series: record.series || '',
+            seriesOrder: record.seriesOrder || '',
+            ratingOverall: record.ratingOverall || null,
+            ratingPerformance: record.ratingPerformance || null,
+            ratingStory: record.ratingStory || null,
+            datePublished: record.datePublished || '',
+            categories,
+            backgroundImage: record.backgroundImage || '',
+            bookFile: record.bookFile || '',
+            _comment: 'Generated Audiobook'
+        };
+    }
+
+    function formatDurationText(seconds) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = seconds % 60;
+        return `${hours}h ${minutes}m ${remainingSeconds}s`;
     }
 
     function escapeHtml(value) {
