@@ -95,21 +95,21 @@ Schema rules:
 - `durationSeconds` is canonical. `durationText` is an optional display value. The dashboard may derive rounded internal minutes for calculations and legacy rendering, but never interpret seconds as minutes.
 - Ratings are numbers from 0 to 5 or `null`; display `--` when unavailable.
 - `series` and `seriesOrder` are optional strings.
-- `backgroundImage` may be an embedded Base64 data URL, a local filename/path, or an HTTP(S) URL.
-- `bookFile` may be a local filename/path or an HTTP(S) URL.
+- `backgroundImage` may be an embedded Base64 data URL, a `bookAssets`-relative filename/path, or an HTTP(S) URL.
+- `bookFile` may be a `bookAssets`-relative filename/path or an HTTP(S) URL.
 
 ## Asset and Image Resolution
 
 Resolve `backgroundImage` in this strict order:
 
 1. **Base64 image:** If it starts with `data:image/`, use it directly after validating that it is a supported image data URL. This is the preferred source.
-2. **Local asset:** If it is a relative filename/path, resolve it below `bookAssets/<author>/<series-or-title>/<title>/` using the first author string and the appropriate series/standalone layout. Preserve already-rooted `bookAssets/` paths.
+2. **Local asset:** If it is a relative filename, resolve it below `bookAssets/<author>/<series-or-title>/<title>/` using the first author string and the appropriate series/standalone layout. For nested relative paths, prefix `bookAssets/`; preserve already-rooted `bookAssets/` paths.
 3. **Remote image:** If it starts with `http://` or `https://`, use it after URL validation.
 4. **Fallback:** If empty or invalid, render the category gradient.
 
 Accept common image formats including JPG, JPEG, PNG, WebP, GIF, AVIF, and SVG. Do not allow `javascript:`, `data:` values except validated `data:image/`, CSS injection characters, or unsafe protocols. Local image files discovered by the Builder take priority over remote metadata images. Use `background-size: cover`, centered positioning, and no repeat.
 
-Resolve `bookFile` below `bookAssets` using the same author/series/title layout when it is a relative path. Preserve HTTP(S) URLs and already-rooted `bookAssets/` paths. Expose play/download controls only when a valid file value exists.
+Resolve `bookFile` below `bookAssets` using the same author/series/title layout when it is a simple filename. For nested relative paths, prefix `bookAssets/`. Preserve HTTP(S) URLs and already-rooted `bookAssets/` paths. Expose play/download controls only when a valid file value exists.
 
 ## Dashboard Features
 
@@ -120,7 +120,7 @@ Implement loading, success, empty, and clear error states while loading `library
 - Arrays of people become display strings joined with commas.
 - Categories become a semicolon-delimited internal display string.
 - `durationSeconds` becomes rounded internal minutes for existing calculations.
-- Preserve the original values where useful for display and export.
+- Preserve the source record values while using normalized display strings and rounded internal minutes.
 
 Provide dynamic statistics for count, total runtime in days/hours/minutes, rounded total hours, completed count, and longest title/duration.
 
@@ -160,7 +160,6 @@ Maintain global state including:
 ```js
 libraryData: []
 currentPlayingBook: null
-isPlaying: false
 currentLayout: 'grid'
 activeCategory: 'all'
 activeNarrator: 'all'
@@ -211,7 +210,7 @@ For each MP3:
 - Use track as series-order fallback.
 - Use genre as the category array fallback.
 - Preserve exact duration seconds and derive `durationText`.
-- Set a relative `bookFile` path below `bookAssets`.
+- Set a relative `bookFile` path below `bookAssets` and use the same path convention for local covers.
 
 ### Metadata Matching
 
