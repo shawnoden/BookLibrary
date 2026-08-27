@@ -10,6 +10,7 @@
     const metadataSummary = document.getElementById('metadata-summary');
     let records = [];
     let selectionRoot = '';
+    let scanErrors = [];
 
     lucide.createIcons();
 
@@ -42,32 +43,41 @@
             const directory = await window.showDirectoryPicker({ mode: 'read' });
             status.textContent = `Scanning ${directory.name} and all subfolders...`;
             const files = [];
+            scanErrors = [];
             await collectDirectoryFiles(directory, '', files);
-            await processFiles(files);
+            await processFiles(files, scanErrors);
         } catch (error) {
-            if (error.name !== 'AbortError') status.textContent = 'Unable to read that folder';
+            if (error.name !== 'AbortError') {
+                console.error('Folder scan failed:', error);
+                status.textContent = `Folder picker failed: ${formatError(error)}. Choose the folder again using the browser picker.`;
+                input.click();
+            }
         }
     }
 
     async function collectDirectoryFiles(directory, relativeDirectory, files) {
         for await (const [name, handle] of directory.entries()) {
-            const relativePath = `${relativeDirectory}${name}`;
-            if (handle.kind === 'file') {
-                const file = await handle.getFile();
-                Object.defineProperty(file, 'relativePath', { value: relativePath, configurable: true });
-                files.push(file);
-            } else if (handle.kind === 'directory') {
-                await collectDirectoryFiles(handle, `${relativePath}/`, files);
+            try {
+                const relativePath = `${relativeDirectory}${name}`;
+                if (handle.kind === 'file') {
+                    const file = await handle.getFile();
+                    Object.defineProperty(file, 'relativePath', { value: relativePath, configurable: true });
+                    files.push(file);
+                } else if (handle.kind === 'directory') {
+                    await collectDirectoryFiles(handle, `${relativePath}/`, files);
+                }
+            } catch (error) {
+                scanErrors.push(`${relativeDirectory}${name}: ${formatError(error)}`);
             }
         }
     }
 
-    async function processFiles(files) {
+    async function processFiles(files, errors = []) {
         const mp3Files = files.filter(file => file.name.toLowerCase().endsWith('.mp3'));
         const jsonFiles = files.filter(file => file.name.toLowerCase().endsWith('.json'));
         const imageFiles = files.filter(file => /\.(jpg|jpeg|png|webp|gif|avif|svg)$/i.test(file.name));
         if (!mp3Files.length) {
-            status.textContent = 'No MP3 files found in that selection';
+            status.textContent = `Scanned ${files.length} files: no MP3 files found${errors.length ? ` (${errors.length} unreadable)` : ''}`;
             return;
         }
         records = [];
@@ -85,7 +95,7 @@
         fileCount.textContent = records.length;
         downloadButton.disabled = records.length === 0;
         const pathWarning = !files.some(file => file.relativePath || file.webkitRelativePath) ? ' Folder paths were unavailable.' : '';
-        status.textContent = `Finished: ${records.length} record${records.length === 1 ? '' : 's'} ready.${pathWarning}`;
+        status.textContent = `Finished: ${records.length} record${records.length === 1 ? '' : 's'} ready. Scanned ${files.length} files (${mp3Files.length} MP3, ${jsonFiles.length} JSON, ${imageFiles.length} images).${errors.length ? ` ${errors.length} file${errors.length === 1 ? '' : 's'} could not be read.` : ''}${pathWarning}`;
         const matchedMetadata = records.filter(record => record._metadataMatched).length;
         const invalidMetadata = metadataFiles.filter(item => item.error).length;
         records.forEach(record => delete record._metadataMatched);
@@ -98,6 +108,7 @@
             return;
         }
         const files = [];
+        scanErrors = [];
         for (const item of Array.from(dataTransfer.items)) {
             const entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
             if (entry) {
@@ -107,7 +118,8 @@
                 if (file) files.push(file);
             }
         }
-        processFiles(files);
+        if (!files.length) files.push(...Array.from(dataTransfer.files || []));
+        processFiles(files, scanErrors);
     }
 
     async function collectEntryFiles(entry, relativeDirectory, files) {
@@ -445,5 +457,9 @@
 
     function escapeHtml(value) {
         return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    }
+
+    function formatError(error) {
+        return error && error.message ? error.message : error && error.name ? error.name : 'unknown error';
     }
 })();
