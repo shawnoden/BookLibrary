@@ -79,8 +79,8 @@
     "ratingStory": 4.84895801544189,
     "datePublished": "2021-05-04",
     "categories": ["Hard Science Fiction","Space Opera","Adventure"],
-    "backgroundImage": "",
-    "bookFile": "",
+    "backgroundImage": "Andy Weir/Project%20Hail%20Mary/Project%20Hail%20Mary.jpg",
+    "bookFile": "Andy Weir/Project%20Hail%20Mary/Project%20Hail%20Mary.mp3",
     "_comment": "Audible Book"
   },
   {
@@ -100,8 +100,8 @@
     "ratingStory": 4.53701782226562,
     "datePublished": "2017-06-06",
     "categories": ["Anthologies","Short Stories"],
-    "backgroundImage": "",
-    "bookFile": "",
+    "backgroundImage": "Andy Weir/The Egg and Other Stories/The Egg and Other Stories.jpg",
+    "bookFile": "Andy Weir/The Egg and Other Stories/The Egg and Other Stories.mp3",
     "_comment": "Audible Book"
   },
   {
@@ -1026,5 +1026,26 @@
     "backgroundImage": "https://play-lh.googleusercontent.com/i-gowAZ8MTPQOWANhA0TsflOb0aoBEfdXgG08699LVnC1ZuvpiHFWCadQjasfMWi-6uFdbs2dIaE_qE=w800",
     "bookFile": "",
     "_comment": "Google Play Book"
+  },
+  {
+    "bookId": [ {"asin":"B0FL2WPR5M"},{"audiobookId": ""},{"isbn": ""},{"sku": "BK_HACH_010372"} ],
+    "title": "You With The Sad Eyes",
+    "subtitle": "A Memoir",
+    "authors": ["Christina Applegate"],
+    "narrators": ["Christina Applegate"],
+    "durationSeconds": 30420,
+    "durationText": "8h 27m 0s",
+    "description": "<b>\"Funny, furious, and profane.\" —<i>The New York Times</i><br /><br /> “Not your typical celebrity memoir.” —Jimmy Kimmel</b><br /><br /><b>Unflinchingly honest and darkly funny, <i>You with the Sad Eyes </i>unveils a side of Christina Applegate we’ve never seen, forever cementing her formidable and iconoclastic legacy. </b><br /><br /> Christina Applegate came of age on sets and stages, expected to be on time, with lines learned, ready for lights-camera-action. What started as a financial necessity soon became an emotional escape from a tumultuous home life in the infamous Laurel Canyon scene of the 70s and 80s. She rocketed to stardom on the sitcom <i>Married...with Children</i> and went on to captivate audiences in classics like <i>Don’t Tell Mom the Babysitters Dead…, Anchorman</i>, and <i>Dead to Me</i> in her five-decade long career.<br /><br /> Then it all stopped. A Multiple Sclerosis diagnosis in 2021 confined her to a king-sized bed and the company of memories she’d rather forget: memories of the self-doubt and body dysmorphia that stalked her meteoric rise, of her mother’s fight against addiction and abuse after her father left, and of the tax life had taken on her body and mind that was suddenly coming due.<br /><br /> Now, at her most intimate and vulnerable, she unveils a story not even those closest to her fully know. She returns to the diaries she kept her whole life, finding the pain matched by joy, the losses mitigated by the extraordinary, and the weight of life lifted by her unrelenting belief that something greater lay ahead. No longer willing to lock herself away and with the perspective only our own mortality can bring, she knew it was imperative to tell it all.<br /><br /><i>You with the Sad Eyes </i>presents a remarkable woman and her legacy. In her own words, “I truly believe that books can make people feel less alone. That’s why I’m doing this. <i>You with the Sad Eyes</i> won’t be some big violin scratching for my life. But it will be real. It will be filled with the ups and downs, the humor and grief of life.<br /><br /> So here I am.<br /><br /> Real me.<br /><br /> Lots to say.”",
+    "publisher": "Little, Brown & Company",
+    "series": "",
+    "seriesOrder": "",
+    "ratingOverall": 4.762929967829745,
+    "ratingPerformance": null,
+    "ratingStory": null,
+    "datePublished": "2026-03-03",
+    "categories": ["Biographies & Memoirs","Entertainment & Celebrities"],
+    "backgroundImage": "https://m.media-amazon.com/images/I/51BN0u5Ra9L._SL500_.jpg",
+    "bookFile": "Christina Applegate/You with the Sad Eyes/You with the Sad Eyes.mp3",
+    "_comment": "Audible Book"
   }
 ]
