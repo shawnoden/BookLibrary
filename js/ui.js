@@ -52,7 +52,7 @@ window.AudiobookApp.ui = {
         document.getElementById('card-hours').textContent = `${Math.round(totalMinutes / 60)} hrs`;
 
         // Completed stats card
-        const listenedCount = state.listenedSet.size;
+        const listenedCount = libraryData.filter(book => state.listenedSet.has(window.AudiobookApp.utils.getBookId(book))).length;
         document.getElementById('card-completed').textContent = `${listenedCount} / ${libraryData.length}`;
 
         // Find Longest book
@@ -165,7 +165,7 @@ window.AudiobookApp.ui = {
         const subset = filtered.slice(0, state.renderedCount);
 
         if (state.groupBySeries) {
-            this.renderGrouped(subset, filtered.length, gridContainer, listBody);
+            this.renderGrouped(subset, gridContainer, listBody);
         } else {
             this.renderFlat(subset, gridContainer, listBody);
         }
@@ -190,7 +190,7 @@ window.AudiobookApp.ui = {
         }
     },
 
-    renderGrouped: function(data, totalCount, gridContainer, listBody) {
+    renderGrouped: function(data, gridContainer, listBody) {
         const state = window.AudiobookApp.state;
         const utils = window.AudiobookApp.utils;
 
@@ -326,11 +326,8 @@ window.AudiobookApp.ui = {
 
         let lazyBgAttribute = '';
         if (book.backgroundImage) {
-            let imgPath = this.getSafeImagePath(book.backgroundImage);
+            let imgPath = this.getSafeImagePath(utils.resolveAssetPath(book, book.backgroundImage));
             if (!imgPath) imgPath = '';
-            if (imgPath && !imgPath.startsWith('backgroundImage/') && !imgPath.startsWith('http://') && !imgPath.startsWith('https://') && !imgPath.startsWith('./')) {
-                imgPath = 'backgroundImage/' + imgPath;
-            }
             if (imgPath) lazyBgAttribute = `data-lazy-cover="${this.escapeHtml(imgPath)}"`;
         }
 
@@ -570,10 +567,7 @@ window.AudiobookApp.ui = {
 
         let coverImgStyle = '';
         if (book.backgroundImage) {
-            let imgPath = this.getSafeImagePath(book.backgroundImage);
-            if (imgPath && !imgPath.startsWith('backgroundImage/') && !imgPath.startsWith('http://') && !imgPath.startsWith('https://') && !imgPath.startsWith('./')) {
-                imgPath = 'backgroundImage/' + imgPath;
-            }
+            let imgPath = this.getSafeImagePath(utils.resolveAssetPath(book, book.backgroundImage));
             if (imgPath) coverImgStyle = `background-image: url("${imgPath}"); background-size: cover; background-position: center;`;
         }
         coverArt.style = coverImgStyle;
@@ -625,10 +619,7 @@ window.AudiobookApp.ui = {
             };
 
             const downloadBtn = document.getElementById('modal-download-btn');
-            let filePath = book.bookFile;
-            if (!filePath.startsWith('bookFiles/')) {
-                filePath = 'bookFiles/' + filePath;
-            }
+            const filePath = utils.resolveAudioPath(book, book.bookFile);
             downloadBtn.href = filePath;
         } else {
             actionSection.classList.add('hidden');
@@ -696,7 +687,8 @@ window.AudiobookApp.ui = {
     getSafeImagePath: function(value) {
         const path = String(value ?? '').trim();
         if (!path || /["'()\\\r\n]/.test(path)) return '';
-        if (/^https?:\/\//i.test(path) || path.startsWith('./') || path.startsWith('backgroundImage/')) return path;
+        if (/^data:image\/(?:png|jpe?g|gif|webp|avif|svg\+xml);base64,[A-Za-z0-9+/]+={0,2}$/i.test(path)) return path;
+        if (/^https?:\/\//i.test(path) || path.startsWith('./') || path.startsWith('bookAssets/')) return path;
         return /^[^:/?#]+(?:\/[^:/?#]+)*$/.test(path) ? path : '';
     },
 

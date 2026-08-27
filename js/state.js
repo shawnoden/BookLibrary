@@ -10,8 +10,6 @@ window.AudiobookApp.state = {
 
     // Playback state variables
     currentPlayingBook: null,
-    isPlaying: false,
-
     // Layout/Viewing flags
     currentLayout: 'grid', // 'grid' | 'list'
     activeCategory: 'all',
